@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
@@ -54,7 +54,7 @@ class CloudflarePurgeCacheButton(
         await self.coordinator.client.purge_cache(self._zone_id, purge_everything=True)
 
     @property
-    def device_info(self) -> dict[str, Any]:
+    def device_info(self) -> DeviceInfo:
         """Device info for the zone."""
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
         account_id = zone_data.get("info", {}).get("account", {}).get("id")
@@ -62,10 +62,10 @@ class CloudflarePurgeCacheButton(
         if account_id:
             config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
 
-        return {
-            "identifiers": {(DOMAIN, self._zone_id)},
-            "name": self._zone_name,
-            "model": f"Cloudflare Zone Management {self._zone_name}",
-            "manufacturer": "Cloudflare",
-            "configuration_url": config_url,
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model=f"Cloudflare Zone Management {self._zone_name}",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )

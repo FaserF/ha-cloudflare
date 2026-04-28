@@ -7,7 +7,6 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import selector
 
@@ -34,7 +33,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
-    ) -> CloudflareAdvancedOptionsFlowHandler:
+    ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
         return CloudflareAdvancedOptionsFlowHandler()
 
@@ -47,7 +46,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
 
@@ -74,7 +73,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
 
     async def async_step_token(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle API Token step."""
         errors: dict[str, str] = {}
         try:
@@ -108,7 +107,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
 
     async def async_step_legacy(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle Legacy Email + Global Key step."""
         errors: dict[str, str] = {}
         try:
@@ -155,7 +154,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
 
     async def async_step_select_zones(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Step for selecting zones to monitor."""
         errors: dict[str, str] = {}
         try:
@@ -223,7 +222,7 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)

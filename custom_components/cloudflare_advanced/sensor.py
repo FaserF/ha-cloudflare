@@ -8,6 +8,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
@@ -92,7 +93,7 @@ class CloudflareAnalyticsSensor(
         return analytics.get(self._sensor_type, 0)
 
     @property
-    def device_info(self) -> dict[str, Any]:
+    def device_info(self) -> DeviceInfo:
         """Device info for the zone."""
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
         account_id = zone_data.get("info", {}).get("account", {}).get("id")
@@ -100,13 +101,13 @@ class CloudflareAnalyticsSensor(
         if account_id:
             config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
 
-        return {
-            "identifiers": {(DOMAIN, self._zone_id)},
-            "name": self._zone_name,
-            "model": f"Cloudflare Zone Management {self._zone_name}",
-            "manufacturer": "Cloudflare",
-            "configuration_url": config_url,
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model=f"Cloudflare Zone Management {self._zone_name}",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
 
 
 class CloudflareWorkerSensor(
@@ -136,7 +137,7 @@ class CloudflareWorkerSensor(
         return "Unknown"
 
     @property
-    def device_info(self) -> dict[str, Any]:
+    def device_info(self) -> DeviceInfo:
         """Device info for Account level."""
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
@@ -146,12 +147,12 @@ class CloudflareWorkerSensor(
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
 
-        return {
-            "identifiers": {(DOMAIN, "cloudflare_account_level")},
-            "name": "Cloudflare Account Resources",
-            "manufacturer": "Cloudflare",
-            "configuration_url": config_url,
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
 
 
 class CloudflareTurnstileSensor(
@@ -180,14 +181,14 @@ class CloudflareTurnstileSensor(
         return None
 
     @property
-    def device_info(self) -> dict[str, Any]:
+    def device_info(self) -> DeviceInfo:
         """Device info for Account level."""
-        return {
-            "identifiers": {(DOMAIN, "cloudflare_account_level")},
-            "name": "Cloudflare Account Resources",
-            "manufacturer": "Cloudflare",
-            "configuration_url": "https://dash.cloudflare.com",
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url="https://dash.cloudflare.com",
+        )
 
 
 class CloudflareFirewallEventSensor(
