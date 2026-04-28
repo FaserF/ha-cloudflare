@@ -63,7 +63,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
 
 This integration is fully compatible with [HACS](https://hacs.xyz/).
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=FaserF/ha-cloudflare&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-cloudflare&category=Integration)
 
 1. Open HACS in Home Assistant.
 2. Click the three dots in the top right corner and select **Custom repositories**.
