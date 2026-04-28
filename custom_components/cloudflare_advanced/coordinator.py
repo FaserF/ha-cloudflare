@@ -1,0 +1,196 @@
+"""Data update coordinator for Cloudflare Advanced."""
+
+from __future__ import annotations
+
+from datetime import timedelta
+import logging
+import asyncio
+from typing import Any
+
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from .const import CONF_API_TOKEN, CONF_EMAIL, CONF_API_KEY, CONF_ZONES, DOMAIN
+from .api import CloudflareApiClient
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+    """Class to manage fetching Cloudflare data."""
+
+    config_entry: ConfigEntry
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Initialize the coordinator."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=DOMAIN,
+            update_interval=timedelta(seconds=60),
+        )
+
+        self.api_token = entry.data.get(CONF_API_TOKEN)
+        self.email = entry.data.get(CONF_EMAIL)
+        self.api_key = entry.data.get(CONF_API_KEY)
+        self.zone_ids = entry.data.get(CONF_ZONES, [])
+
+        session = async_get_clientsession(hass)
+        self.client = CloudflareApiClient(
+            session, api_token=self.api_token, email=self.email, api_key=self.api_key
+        )
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch all data from Cloudflare and perform automated DDNS updates."""
+        data: dict[str, Any] = {
+            "zones": {},
+            "tunnels": [],
+            "public_ip": None,
+            "workers": [],
+            "turnstile_widgets": [],
+            "access_apps": [],
+        }
+
+        try:
+            # 1. Get current public IP (DDNS)
+            public_ip = None
+            try:
+                async with self.client.session.get(
+                    "https://services.home-assistant.io/whoami"
+                ) as resp:
+                    if resp.status == 200:
+                        ip_info = await resp.json()
+                        public_ip = ip_info.get("ip")
+                        data["public_ip"] = public_ip
+            except Exception as ip_err:
+                _LOGGER.debug("Failed to fetch public IP: %s", ip_err)
+
+            # 2. Fetch all zones
+            all_zones = await self.client.get_zones()
+            account_id = None
+
+            for zone in all_zones:
+                zone_id = zone["id"]
+                if zone_id in self.zone_ids:
+                    if not account_id:
+                        account_id = zone.get("account", {}).get("id")
+
+                    settings_task = self.client.get_zone_settings(zone_id)
+                    records_task = self.client.get_dns_records(zone_id)
+                    analytics_task = self.client.get_analytics(zone_id)
+                    health_checks_task = self.client.get_health_checks(zone_id)
+                    page_rules_task = self.client.get_page_rules(zone_id)
+                    firewall_task = self.client.get_firewall_events(zone_id)
+
+                    zone_results = await asyncio.gather(
+                        settings_task,
+                        records_task,
+                        analytics_task,
+                        health_checks_task,
+                        page_rules_task,
+                        firewall_task,
+                        return_exceptions=True,
+                    )
+                    (
+                        settings,
+                        dns_records,
+                        analytics,
+                        health_checks,
+                        page_rules,
+                        firewall,
+                    ) = zone_results
+
+                    dns_list = (
+                        dns_records if not isinstance(dns_records, Exception) else []
+                    )
+
+                    # Perform automatic DDNS update if IP changed
+                    if public_ip and dns_list:
+                        for record in dns_list:
+                            if (
+                                record.get("type") == "A"
+                                and record.get("content") != public_ip
+                            ):
+                                _LOGGER.info(
+                                    "Updating Cloudflare DNS record %s from %s to %s",
+                                    record.get("name"),
+                                    record.get("content"),
+                                    public_ip,
+                                )
+                                try:
+                                    await self.client.update_dns_record(
+                                        zone_id,
+                                        record["id"],
+                                        {
+                                            "name": record["name"],
+                                            "type": "A",
+                                            "content": public_ip,
+                                            "proxied": record.get("proxied", True),
+                                            "ttl": record.get("ttl", 1),
+                                        },
+                                    )
+                                except Exception as dns_update_err:
+                                    _LOGGER.error(
+                                        "Failed to update DNS record: %s",
+                                        dns_update_err,
+                                    )
+
+                    data["zones"][zone_id] = {
+                        "info": zone,
+                        "settings": settings
+                        if not isinstance(settings, Exception)
+                        else [],
+                        "dns_records": dns_list,
+                        "analytics": analytics
+                        if not isinstance(analytics, Exception)
+                        else {},
+                        "health_checks": health_checks
+                        if not isinstance(health_checks, Exception)
+                        else [],
+                        "page_rules": page_rules
+                        if not isinstance(page_rules, Exception)
+                        else [],
+                        "firewall_events": firewall
+                        if not isinstance(firewall, Exception)
+                        else [],
+                    }
+
+            # 3. Fetch Tunnels & Account level services
+            if account_id:
+                tunnels_task = self.client.get_tunnels(account_id)
+                workers_task = self.client.get_workers(account_id)
+                turnstile_task = self.client.get_turnstile_widgets(account_id)
+                access_task = self.client.get_access_apps(account_id)
+
+                results = await asyncio.gather(
+                    tunnels_task,
+                    workers_task,
+                    turnstile_task,
+                    access_task,
+                    return_exceptions=True,
+                )
+                tunnels, workers, widgets, apps = results
+
+                data["workers"] = workers if not isinstance(workers, Exception) else []
+                data["turnstile_widgets"] = (
+                    widgets if not isinstance(widgets, Exception) else []
+                )
+                data["access_apps"] = apps if not isinstance(apps, Exception) else []
+
+                tunnels_list = tunnels if not isinstance(tunnels, Exception) else []
+                for tunnel in tunnels_list:  # type: ignore[union-attr]
+                    tunnel_id = tunnel["id"]
+                    connections = await self.client.get_tunnel_connections(
+                        account_id, tunnel_id
+                    )
+                    tunnel["connections"] = connections
+                    data["tunnels"].append(tunnel)
+
+            return data
+
+        except Exception as err:
+            raise UpdateFailed(
+                f"Error communicating with Cloudflare API: {err}"
+            ) from err

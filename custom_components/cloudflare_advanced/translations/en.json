@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Choose how you want to authenticate with Cloudflare.",
+        "data": {
+          "auth_type": "Authentication Method"
+        }
+      },
+      "token": {
+        "description": "Enter your Cloudflare API Token.",
+        "data": {
+          "api_token": "API Token"
+        }
+      },
+      "legacy": {
+        "description": "Enter your Cloudflare Account Email and Global API Key.",
+        "data": {
+          "email": "Email",
+          "api_key": "Global API Key"
+        }
+      },
+      "select_zones": {
+        "description": "Select the zones you want to monitor.",
+        "data": {
+          "zones": "Zones"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid authentication",
+      "no_zones": "No active zones found in this account",
+      "cannot_connect": "Failed to connect to Cloudflare"
+    },
+    "abort": {
+      "already_configured": "Account is already configured"
+    }
+  },
+  "entity": {
+    "select": {
+      "security_level": {
+        "state": {
+          "off": "Off",
+          "essentially_off": "Essentially Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "under_attack": "I'm Under Attack!"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,133 @@
+purge_cache:
+  name: Purge Cache
+  description: Purge the Cloudflare cache for a given zone.
+  fields:
+    zone_id:
+      name: Zone ID
+      description: The Cloudflare Zone ID.
+      required: true
+      example: "f782b2d8e20acb5a4892e668d9d11973"
+      selector:
+        text:
+    purge_everything:
+      name: Purge everything
+      description: Purge all cached assets.
+      required: false
+      default: true
+      selector:
+        boolean:
+    files:
+      name: Files
+      description: Specific URLs to purge.
+      required: false
+      selector:
+        object:
+
+update_dns_record:
+  name: Update DNS Record
+  description: Update an existing DNS record in a Cloudflare zone.
+  fields:
+    zone_id:
+      name: Zone ID
+      description: The Cloudflare Zone ID.
+      required: true
+      example: "f782b2d8e20acb5a4892e668d9d11973"
+      selector:
+        text:
+    record_id:
+      name: Record ID
+      description: The Cloudflare DNS Record ID.
+      required: true
+      example: "b3e72d1c93a271a3b9d72c81f8291c"
+      selector:
+        text:
+    name:
+      name: Name
+      description: The DNS record name (e.g. sub.example.com).
+      required: true
+      example: "sub.example.com"
+      selector:
+        text:
+    type:
+      name: Type
+      description: The DNS record type (e.g. A, AAAA, CNAME, TXT).
+      required: true
+      example: "A"
+      selector:
+        text:
+    content:
+      name: Content
+      description: The DNS record content (e.g. IP address, target domain).
+      required: true
+      example: "192.168.1.1"
+      selector:
+        text:
+    proxied:
+      name: Proxied
+      description: Whether the record is proxied by Cloudflare.
+      required: false
+      default: true
+      selector:
+        boolean:
+    ttl:
+      name: TTL
+      description: Time to Live in seconds (1 for automatic).
+      required: false
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 86400
+          step: 1
+          mode: box
+
+create_dns_record:
+  name: Create DNS Record
+  description: Create a new DNS record in a Cloudflare zone.
+  fields:
+    zone_id:
+      name: Zone ID
+      description: The Cloudflare Zone ID.
+      required: true
+      example: "f782b2d8e20acb5a4892e668d9d11973"
+      selector:
+        text:
+    name:
+      name: Name
+      description: The DNS record name (e.g. sub.example.com).
+      required: true
+      example: "sub.example.com"
+      selector:
+        text:
+    type:
+      name: Type
+      description: The DNS record type (e.g. A, AAAA, CNAME, TXT).
+      required: true
+      example: "A"
+      selector:
+        text:
+    content:
+      name: Content
+      description: The DNS record content (e.g. IP address, target domain).
+      required: true
+      example: "192.168.1.1"
+      selector:
+        text:
+    proxied:
+      name: Proxied
+      description: Whether the record is proxied by Cloudflare.
+      required: false
+      default: true
+      selector:
+        boolean:
+    ttl:
+      name: TTL
+      description: Time to Live in seconds (1 for automatic).
+      required: false
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 86400
+          step: 1
+          mode: box

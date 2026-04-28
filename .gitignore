@@ -1,0 +1,7 @@
+/.github/scripts/__pycache__
+/tests/__pycache__
+/custom_components/cloudflare_advanced/__pycache__
+/.mypy_cache
+test_graphql.py
+/__pycache__
+config_entry-*.json
