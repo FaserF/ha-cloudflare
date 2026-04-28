@@ -12,7 +12,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import CONF_API_TOKEN, CONF_EMAIL, CONF_API_KEY, CONF_ZONES, DOMAIN
+from .const import (
+    CONF_API_TOKEN,
+    CONF_EMAIL,
+    CONF_API_KEY,
+    CONF_ZONES,
+    CONF_UPDATE_INTERVAL,
+    DOMAIN,
+)
 from .api import CloudflareApiClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,17 +32,23 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
+        self.config_entry = entry
+
+        # Get settings from options or data
+        self.api_token = entry.options.get(
+            CONF_API_TOKEN, entry.data.get(CONF_API_TOKEN)
+        )
+        self.email = entry.options.get(CONF_EMAIL, entry.data.get(CONF_EMAIL))
+        self.api_key = entry.options.get(CONF_API_KEY, entry.data.get(CONF_API_KEY))
+        self.zone_ids = entry.data.get(CONF_ZONES, [])
+        update_interval = entry.options.get(CONF_UPDATE_INTERVAL, 3600)
+
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=60),
+            update_interval=timedelta(seconds=update_interval),
         )
-
-        self.api_token = entry.data.get(CONF_API_TOKEN)
-        self.email = entry.data.get(CONF_EMAIL)
-        self.api_key = entry.data.get(CONF_API_KEY)
-        self.zone_ids = entry.data.get(CONF_ZONES, [])
 
         session = async_get_clientsession(hass)
         self.client = CloudflareApiClient(

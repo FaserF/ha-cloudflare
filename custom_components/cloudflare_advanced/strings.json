@@ -36,9 +36,40 @@
       "already_configured": "Account is already configured"
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Configure the Cloudflare Advanced options.",
+        "data": {
+          "api_token": "API Token",
+          "email": "Email",
+          "api_key": "Global API Key",
+          "update_interval": "Update Interval (Seconds)"
+        }
+      }
+    }
+  },
   "entity": {
+    "sensor": {
+      "requests": { "name": "Requests" },
+      "bytes": { "name": "Bandwidth" },
+      "threats": { "name": "Threats Blocked" },
+      "uniques": { "name": "Unique Visitors" },
+      "firewall_events": { "name": "Last Security Event" },
+      "worker_deployment": { "name": "Worker Deployment" }
+    },
+    "switch": {
+      "always_use_https": { "name": "Always Use HTTPS" },
+      "automatic_https_rewrites": { "name": "Automatic HTTPS Rewrites" },
+      "development_mode": { "name": "Development Mode" },
+      "page_rule": { "name": "Page Rule ({url_target})" }
+    },
+    "button": {
+      "purge_cache": { "name": "Purge Cache" }
+    },
     "select": {
       "security_level": {
+        "name": "Security Level",
         "state": {
           "off": "Off",
           "essentially_off": "Essentially Off",
@@ -47,7 +78,15 @@
           "high": "High",
           "under_attack": "I'm Under Attack!"
         }
-      }
+      },
+      "tls_1_3": { "name": "TLS 1.3" },
+      "min_tls_version": { "name": "Minimum TLS Version" },
+      "ssl": { "name": "SSL Mode" }
+    },
+    "binary_sensor": {
+      "tunnel": { "name": "Tunnel" },
+      "health_check": { "name": "Health Check {check_name}" },
+      "access_app": { "name": "Access Application {app_name}" }
     }
   }
 }

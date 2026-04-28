@@ -63,8 +63,9 @@ class CloudflareTunnelBinarySensor(
         super().__init__(coordinator)
         self._tunnel_id = tunnel["id"]
         self._tunnel_name = tunnel["name"]
-        self._attr_unique_id = f"tunnel_{self._tunnel_id}_status"
-        self._attr_name = f"Tunnel {self._tunnel_name}"
+        self._attr_unique_id = f"tunnel_{self._tunnel_id}"
+        self._attr_translation_key = "tunnel"
+        self._attr_has_entity_name = True
 
     @property
     def is_on(self) -> bool:
@@ -131,7 +132,9 @@ class CloudflareHealthCheckBinarySensor(
         self._check_id = check["id"]
         self._check_name = check.get("name", self._check_id)
         self._attr_unique_id = f"health_check_{self._check_id}"
-        self._attr_name = f"Health Check {self._check_name} ({zone_name})"
+        self._attr_translation_key = "health_check"
+        self._attr_has_entity_name = True
+        self._attr_translation_placeholders = {"check_name": self._check_name}
 
     @property
     def is_on(self) -> bool:
@@ -179,7 +182,9 @@ class CloudflareAccessAppBinarySensor(
         self._app_id = app["id"]
         self._app_name = app.get("name", self._app_id)
         self._attr_unique_id = f"access_app_{self._app_id}"
-        self._attr_name = f"Access App {self._app_name}"
+        self._attr_translation_key = "access_app"
+        self._attr_has_entity_name = True
+        self._attr_translation_placeholders = {"app_name": self._app_name}
 
     @property
     def is_on(self) -> bool:

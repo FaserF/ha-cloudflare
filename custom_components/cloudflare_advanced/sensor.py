@@ -70,14 +70,8 @@ class CloudflareAnalyticsSensor(
         self._sensor_type = sensor_type
         self._attr_unique_id = f"{zone_id}_analytics_{sensor_type}"
 
-        type_labels = {
-            "requests": "Requests",
-            "bytes": "Bandwidth",
-            "threats": "Threats Blocked",
-            "uniques": "Unique Visitors",
-        }
-
-        self._attr_name = f"{type_labels.get(sensor_type)} ({zone_name})"
+        self._attr_translation_key = sensor_type
+        self._attr_has_entity_name = True
 
         if sensor_type == "bytes":
             self._attr_native_unit_of_measurement = "MB"
@@ -129,7 +123,8 @@ class CloudflareWorkerSensor(
         super().__init__(coordinator)
         self._worker_id = worker["id"]
         self._attr_unique_id = f"worker_{self._worker_id}_deployment"
-        self._attr_name = f"Worker {self._worker_id}"
+        self._attr_translation_key = "worker_deployment"
+        self._attr_has_entity_name = True
         self._attr_native_unit_of_measurement = "Status"
 
     @property
@@ -211,7 +206,8 @@ class CloudflareFirewallEventSensor(
         self._zone_id = zone_id
         self._zone_name = zone_name
         self._attr_unique_id = f"{zone_id}_firewall_events"
-        self._attr_name = f"Last Security Event ({zone_name})"
+        self._attr_translation_key = "firewall_events"
+        self._attr_has_entity_name = True
 
     @property
     def native_value(self) -> Any:

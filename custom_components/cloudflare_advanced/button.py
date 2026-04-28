@@ -46,7 +46,8 @@ class CloudflarePurgeCacheButton(
         self._zone_id = zone_id
         self._zone_name = zone_name
         self._attr_unique_id = f"{zone_id}_purge_cache_button"
-        self._attr_name = f"Purge Cache ({zone_name})"
+        self._attr_translation_key = "purge_cache"
+        self._attr_has_entity_name = True
 
     async def async_press(self) -> None:
         """Handle the button press."""

@@ -72,7 +72,8 @@ class CloudflareSettingSwitch(
         self._zone_name = zone_name
         self._setting_id = setting_id
         self._attr_unique_id = f"{zone_id}_{setting_id}_switch"
-        self._attr_name = f"{setting_label} ({zone_name})"
+        self._attr_translation_key = setting_id
+        self._attr_has_entity_name = True
 
     @property
     def is_on(self) -> bool:
@@ -136,12 +137,14 @@ class CloudflarePageRuleSwitch(
         self._rule_id = rule["id"]
         self._rule = rule
         self._attr_unique_id = f"{zone_id}_pagerule_{self._rule_id}"
+        self._attr_translation_key = "page_rule"
+        self._attr_has_entity_name = True
 
         targets = rule.get("targets", [])
         url_target = (
             targets[0].get("constraint", {}).get("value") if targets else "Rule"
         )
-        self._attr_name = f"Page Rule ({url_target}) ({zone_name})"
+        self._attr_translation_placeholders = {"url_target": url_target}
 
     @property
     def is_on(self) -> bool:

@@ -12,7 +12,15 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import selector
 
 from .api import CloudflareApiClient
-from .const import CONF_API_KEY, CONF_API_TOKEN, CONF_EMAIL, CONF_ZONES, DOMAIN
+from homeassistant.core import callback
+from .const import (
+    CONF_API_KEY,
+    CONF_API_TOKEN,
+    CONF_EMAIL,
+    CONF_ZONES,
+    CONF_UPDATE_INTERVAL,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +29,14 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
     """Handle a config flow for Cloudflare Advanced."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> CloudflareAdvancedOptionsFlowHandler:
+        """Get the options flow for this handler."""
+        return CloudflareAdvancedOptionsFlowHandler()
 
     def __init__(self) -> None:
         """Initialize the flow."""
@@ -200,3 +216,44 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
                 data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
                 errors=errors,
             )
+
+
+class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle Cloudflare Advanced options."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Get current values
+        api_token = self.config_entry.options.get(
+            CONF_API_TOKEN, self.config_entry.data.get(CONF_API_TOKEN, "")
+        )
+        email = self.config_entry.options.get(
+            CONF_EMAIL, self.config_entry.data.get(CONF_EMAIL, "")
+        )
+        api_key = self.config_entry.options.get(
+            CONF_API_KEY, self.config_entry.data.get(CONF_API_KEY, "")
+        )
+        update_interval = self.config_entry.options.get(CONF_UPDATE_INTERVAL, 3600)
+
+        options_schema: dict[vol.Required, Any] = {}
+
+        # Determine if we are using token or legacy auth
+        if self.config_entry.data.get(CONF_API_TOKEN):
+            options_schema[vol.Required(CONF_API_TOKEN, default=api_token)] = str
+        else:
+            options_schema[vol.Required(CONF_EMAIL, default=email)] = str
+            options_schema[vol.Required(CONF_API_KEY, default=api_key)] = str
+
+        options_schema[vol.Required(CONF_UPDATE_INTERVAL, default=update_interval)] = (
+            vol.All(vol.Coerce(int), vol.Range(min=10, max=3600))
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(options_schema),
+        )

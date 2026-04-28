@@ -59,9 +59,9 @@ class CloudflareSettingSelect(
         self._zone_name = zone_name
         self._setting_id = setting_id
         self._attr_unique_id = f"{zone_id}_{setting_id}_select"
-        self._attr_name = f"{setting_label} ({zone_name})"
         self._attr_options = options
         self._attr_translation_key = setting_id
+        self._attr_has_entity_name = True
 
     @property
     def current_option(self) -> str | None:
