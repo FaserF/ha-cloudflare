@@ -112,16 +112,25 @@ You can jump directly to the [Cloudflare API Tokens Dashboard](https://dash.clou
 For a comprehensive step-by-step tutorial, refer to the official [Cloudflare Token Creation Guide](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/).
 
 Ensure your generated API Token follows the **Principle of Least Privilege**. Grant access solely to the required scopes for your selected domains:
-- `Zone.Analytics` (Read)
-- `Zone.Zone` (Read)
-- `Zone.Settings` (Read/Edit)
-- `Zone.Page Rules` (Read/Edit)
-- `Zone.Cache Purge` (Edit)
-- `Zone.DNS` (Read/Edit)
 
-*Optional scopes for Account-wide assets (Tunnels, Workers, Turnstile, Access Apps):*
-- `Account.Cloudflare Zero Trust` (Read)
-- `Account.Workers Scripts` (Read)
+### Required Scopes (Zone-level)
+- `Zone.Analytics` (Read) - For traffic & security metrics.
+- `Zone.Zone` (Read) - For zone discovery and metadata.
+- `Zone.Settings` (Read/Edit) - For performance and network toggles.
+- `Zone.Page Rules` (Read/Edit) - For URL filter management.
+- `Zone.DNS` (Read/Edit) - For DDNS updates and record control.
+- `Zone.WAF` (Read/Edit) - For custom WAF rule toggles.
+- `Zone.Rulesets` (Read/Edit) - For advanced Cache rules.
+- `Zone.Email Routing` (Read/Edit) - For email forwarding rule control.
+- `Zone.Cache Purge` (Edit) - For manual cache clearing.
+
+### Optional Scopes (Account-level)
+- `Account.Cloudflare Zero Trust` (Read/Edit) - For Tunnels and Gateway policies.
+- `Account.Workers Scripts` (Read) - For Worker status tracking.
+- `Account.Cloudflare Pages` (Read) - For project deployment status.
+- `Account.Cloudflare Images` (Read) - For storage capacity monitoring.
+- `Account.Load Balancing` (Read) - For health diagnostics of LB pools.
+- `Account.Registrar` (Read/Edit) - For domain management and auto-renew toggles.
 
 
 ## 🧱 Services
