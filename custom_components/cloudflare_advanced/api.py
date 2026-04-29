@@ -427,3 +427,12 @@ class CloudflareApiClient:
             "PUT", f"accounts/{account_id}/gateway/rules/{rule_id}", json_data=rule_data
         )
         return result.get("result", {})
+
+    async def get_load_balancer_pools(self, account_id: str) -> list[dict[str, Any]]:
+        """Get Load Balancer pools for an account."""
+        try:
+            result = await self._request("GET", f"accounts/{account_id}/load_balancers/pools")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch Load Balancer pools: %s", err)
+            return []

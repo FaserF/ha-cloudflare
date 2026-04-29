@@ -74,6 +74,9 @@
       },
       "certificate_expiration": {
         "name": "Certificate Expiration"
+      },
+      "lb_pool": {
+        "name": "Load Balancer Pool ({pool_name})"
       }
     },
     "switch": {

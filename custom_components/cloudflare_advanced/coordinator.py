@@ -198,6 +198,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 access_task = self.client.get_access_apps(account_id)
                 pages_task = self.client.get_pages_projects(account_id)
                 gateway_rules_task = self.client.get_gateway_rules(account_id)
+                lb_pools_task = self.client.get_load_balancer_pools(account_id)
 
                 results = await asyncio.gather(
                     tunnels_task,
@@ -206,9 +207,10 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     access_task,
                     pages_task,
                     gateway_rules_task,
+                    lb_pools_task,
                     return_exceptions=True,
                 )
-                tunnels, workers, widgets, apps, pages, gateway_rules = results
+                tunnels, workers, widgets, apps, pages, gateway_rules, lb_pools = results
 
                 data["workers"] = workers if not isinstance(workers, Exception) else []
                 data["turnstile_widgets"] = (
@@ -217,6 +219,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 data["access_apps"] = apps if not isinstance(apps, Exception) else []
                 data["pages_projects"] = pages if not isinstance(pages, Exception) else []
                 data["gateway_rules"] = gateway_rules if not isinstance(gateway_rules, Exception) else []
+                data["load_balancer_pools"] = lb_pools if not isinstance(lb_pools, Exception) else []
 
                 tunnels_list = tunnels if not isinstance(tunnels, Exception) else []
                 for tunnel in tunnels_list:  # type: ignore[union-attr]

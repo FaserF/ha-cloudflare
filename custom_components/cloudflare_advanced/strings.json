@@ -58,7 +58,8 @@
       "firewall_events": { "name": "Last Security Event" },
       "worker_deployment": { "name": "Worker Deployment" },
       "pages_deployment": { "name": "Pages Project {project_name}" },
-      "certificate_expiration": { "name": "Certificate Expiration" }
+      "certificate_expiration": { "name": "Certificate Expiration" },
+      "lb_pool": { "name": "Load Balancer Pool {pool_name}" }
     },
     "switch": {
       "always_use_https": { "name": "Always Use HTTPS" },

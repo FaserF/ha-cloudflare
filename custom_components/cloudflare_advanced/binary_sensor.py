@@ -45,6 +45,10 @@ async def async_setup_entry(
     for app in coordinator.data.get("access_apps", []):
         entities.append(CloudflareAccessAppBinarySensor(coordinator, app))
 
+    # Add Load Balancer Pools Binary Sensors
+    for pool in coordinator.data.get("load_balancer_pools", []):
+        entities.append(CloudflareLoadBalancerPoolBinarySensor(coordinator, pool))
+
     async_add_entities(entities)
 
 
@@ -223,3 +227,70 @@ class CloudflareAccessAppBinarySensor(
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
+
+
+class CloudflareLoadBalancerPoolBinarySensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], BinarySensorEntity
+):
+    """Binary sensor for Cloudflare Load Balancer Pool Health."""
+
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        pool: dict[str, Any],
+    ) -> None:
+        """Initialize the binary sensor."""
+        super().__init__(coordinator)
+        self._pool_id = pool["id"]
+        self._pool_name = pool.get("name", "Unknown Pool")
+        self._attr_unique_id = f"lb_pool_{self._pool_id}"
+        self._attr_translation_key = "lb_pool"
+        self._attr_has_entity_name = True
+        self._attr_translation_placeholders = {"pool_name": self._pool_name}
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the pool is unhealthy."""
+        pools = self.coordinator.data.get("load_balancer_pools", [])
+        for p in pools:
+            if p["id"] == self._pool_id:
+                status = p.get("health", "")
+                if isinstance(status, str):
+                    return status.lower() not in ("healthy", "true", "up")
+                return not status
+        return False
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return pool attributes."""
+        pools = self.coordinator.data.get("load_balancer_pools", [])
+        for p in pools:
+            if p["id"] == self._pool_id:
+                return {
+                    "origins": p.get("origins", []),
+                    "enabled": p.get("enabled", True),
+                    "check_regions": p.get("check_regions", []),
+                    "description": p.get("description", ""),
+                }
+        return {}
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for Account level."""
+        config_url = "https://dash.cloudflare.com"
+        zones = self.coordinator.data.get("zones", {})
+        if zones:
+            first_zone = list(zones.values())[0]
+            account_id = first_zone.get("info", {}).get("account", {}).get("id")
+            if account_id:
+                config_url = f"https://dash.cloudflare.com/{account_id}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+

@@ -126,3 +126,11 @@ async def test_api_client_requests(mock_api_client) -> None:
     assert len(gw_rules) == 1
     assert gw_rules[0]["id"] == "gw_rule_id"
     assert gw_rules[0]["enabled"] is True
+
+    mock_api_client.get_load_balancer_pools.return_value = [
+        {"id": "lb_pool_id", "name": "Web Servers", "health": "healthy"}
+    ]
+    lb_pools = await mock_api_client.get_load_balancer_pools("account_id")
+    assert len(lb_pools) == 1
+    assert lb_pools[0]["id"] == "lb_pool_id"
+    assert lb_pools[0]["health"] == "healthy"

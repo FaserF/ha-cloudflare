@@ -166,6 +166,7 @@ def mock_api_client() -> Generator[AsyncMock]:
         client.update_email_routing_rule = AsyncMock(return_value={})
         client.get_gateway_rules = AsyncMock(return_value=[])
         client.update_gateway_rule = AsyncMock(return_value={})
+        client.get_load_balancer_pools = AsyncMock(return_value=[])
         yield client
 
 
