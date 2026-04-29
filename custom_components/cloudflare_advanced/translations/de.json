@@ -76,7 +76,9 @@
       "worker_deployment": { "name": "Worker-Deployment" },
       "pages_deployment": { "name": "Pages-Projekt {project_name}" },
       "certificate_expiration": { "name": "Zertifikatsablauf" },
-      "lb_pool": { "name": "Load Balancer Pool ({pool_name})" }
+      "lb_pool": { "name": "Load Balancer Pool ({pool_name})" },
+      "ratelimit_remaining": { "name": "API-Restkontingent" },
+      "ratelimit_reset": { "name": "API-Kontingent-Reset" }
     },
     "switch": {
       "always_use_https": { "name": "Immer HTTPS verwenden" },

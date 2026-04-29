@@ -36,6 +36,7 @@ class CloudflareApiClient:
             self._headers["X-Auth-Key"] = api_key
 
         self._headers["Content-Type"] = "application/json"
+        self.last_ratelimit: dict[str, Any] = {}
 
     async def _request(
         self, method: str, endpoint: str, json_data: dict | None = None
@@ -47,6 +48,28 @@ class CloudflareApiClient:
             async with self.session.request(
                 method, url, headers=self._headers, json=json_data
             ) as response:
+                # Track rate limits
+                if "Ratelimit" in response.headers:
+                    rl = response.headers["Ratelimit"]
+                    # Format: "default";r=50;t=30
+                    try:
+                        parts = rl.split(";")
+                        for p in parts:
+                            if p.startswith("r="):
+                                self.last_ratelimit["remaining"] = int(p[2:])
+                            elif p.startswith("t="):
+                                self.last_ratelimit["reset"] = int(p[2:])
+                    except Exception:
+                        pass
+                elif "X-Ratelimit-Remaining" in response.headers:
+                    self.last_ratelimit["remaining"] = int(
+                        response.headers["X-Ratelimit-Remaining"]
+                    )
+                    if "X-Ratelimit-Reset" in response.headers:
+                        self.last_ratelimit["reset"] = int(
+                            response.headers["X-Ratelimit-Reset"]
+                        )
+
                 if response.status == 401:
                     raise Exception("Unauthorized: Check your API token or key.")
                 if response.status == 403:

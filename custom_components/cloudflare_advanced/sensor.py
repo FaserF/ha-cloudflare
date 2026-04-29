@@ -64,6 +64,10 @@ async def async_setup_entry(
         entities.append(CloudflareImagesSensor(coordinator, "current"))
         entities.append(CloudflareImagesSensor(coordinator, "allowed"))
 
+    # Add Account Level / API Limit Sensors
+    entities.append(CloudflareRatelimitSensor(coordinator, "remaining"))
+    entities.append(CloudflareRatelimitSensor(coordinator, "reset"))
+
     async_add_entities(entities)
 
 
@@ -504,6 +508,46 @@ class CloudflareImagesSensor(
             name="Cloudflare Account Resources",
             manufacturer="Cloudflare",
             configuration_url=config_url,
+        )
+
+
+class CloudflareRatelimitSensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
+):
+    """Sensor for Cloudflare API Rate Limit."""
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        sensor_type: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._sensor_type = sensor_type
+        self._attr_unique_id = f"cloudflare_ratelimit_{sensor_type}"
+        self._attr_translation_key = f"ratelimit_{sensor_type}"
+        self._attr_has_entity_name = True
+
+        if sensor_type == "remaining":
+            self._attr_native_unit_of_measurement = "Requests"
+            self._attr_icon = "mdi:api"
+        elif sensor_type == "reset":
+            self._attr_native_unit_of_measurement = "s"
+            self._attr_icon = "mdi:timer-sand"
+
+    @property
+    def native_value(self) -> Any:
+        """Return the state of the sensor."""
+        return self.coordinator.data.get("ratelimit", {}).get(self._sensor_type)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account",
+            manufacturer="Cloudflare",
+            configuration_url="https://dash.cloudflare.com",
         )
 
 

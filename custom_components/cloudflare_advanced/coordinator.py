@@ -275,6 +275,8 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     tunnel["connections"] = connections
                     data["tunnels"].append(tunnel)
 
+                data["ratelimit"] = self.client.last_ratelimit
+
             return data
 
         except Exception as err:
