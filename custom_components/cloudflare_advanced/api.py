@@ -474,3 +474,12 @@ class CloudflareApiClient:
         except Exception as err:
             _LOGGER.debug("Failed to fetch registrar domains: %s", err)
             return []
+
+    async def get_images_stats(self, account_id: str) -> dict[str, Any]:
+        """Get Cloudflare Images usage statistics."""
+        try:
+            result = await self._request("GET", f"accounts/{account_id}/images/v1/stats")
+            return result.get("result", {})
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch Cloudflare Images stats: %s", err)
+            return {}

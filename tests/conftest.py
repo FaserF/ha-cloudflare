@@ -171,6 +171,7 @@ def mock_api_client() -> Generator[AsyncMock]:
         client.get_zone_ruleset_rules = AsyncMock(return_value=[])
         client.update_zone_ruleset_rule = AsyncMock(return_value={})
         client.get_registrar_domains = AsyncMock(return_value=[])
+        client.get_images_stats = AsyncMock(return_value={})
         yield client
 
 

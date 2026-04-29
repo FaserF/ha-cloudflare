@@ -38,6 +38,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **Workers Deployment**: Get uptime diagnostics for deployed Cloudflare Workers.
   - **Pages Deployment**: Track the live deployment state of Cloudflare Pages.
   - **Turnstile Widgets**: Monitor mode configurations.
+  - **Cloudflare Images**: Monitor stored vs allowed capacities.
 - **Configurable Control**:
   - **Zone Settings**: Toggles for Development Mode, Always Use HTTPS, and Automatic HTTPS Rewrites.
   - **Security Level**: Dropdown options to force immediate strictness (`off`, `essentially_off`, `low`, `medium`, `high`, `under_attack`).

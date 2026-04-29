@@ -157,3 +157,8 @@ async def test_api_client_requests(mock_api_client) -> None:
     assert len(reg_domains) == 1
     assert reg_domains[0]["name"] == "example.com"
     assert reg_domains[0]["registry_expires_at"] == "2027-06-19T18:30:00Z"
+
+    mock_api_client.get_images_stats.return_value = {"count": {"current": 42, "allowed": 10000}}
+    img_stats = await mock_api_client.get_images_stats("account_id")
+    assert img_stats["count"]["current"] == 42
+    assert img_stats["count"]["allowed"] == 10000

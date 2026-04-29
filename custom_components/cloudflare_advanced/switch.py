@@ -468,6 +468,8 @@ class CloudflareCacheRuleSwitch(
 ):
     """Switch for a Cloudflare Cache Rule."""
 
+    _attr_entity_registry_enabled_default = False
+
     def __init__(
         self,
         coordinator: CloudflareAdvancedCoordinator,

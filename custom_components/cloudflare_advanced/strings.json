@@ -57,6 +57,8 @@
       "uniques": { "name": "Unique Visitors" },
       "firewall_events": { "name": "Last Security Event" },
       "registrar_domain": { "name": "Domain Expiry ({domain_name})" },
+      "images_current": { "name": "Stored Images" },
+      "images_allowed": { "name": "Allowed Images" },
       "worker_deployment": { "name": "Worker Deployment" },
       "pages_deployment": { "name": "Pages Project {project_name}" },
       "certificate_expiration": { "name": "Certificate Expiration" },
