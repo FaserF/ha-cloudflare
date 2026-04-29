@@ -91,6 +91,9 @@
       },
       "email_routing": {
         "name": "Email Route ({alias})"
+      },
+      "gateway_rule": {
+        "name": "Zero Trust Policy ({rule_name})"
       }
     },
     "button": {

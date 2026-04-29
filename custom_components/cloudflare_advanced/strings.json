@@ -65,7 +65,8 @@
       "automatic_https_rewrites": { "name": "Automatic HTTPS Rewrites" },
       "development_mode": { "name": "Development Mode" },
       "page_rule": { "name": "Page Rule ({url_target})" },
-      "email_routing": { "name": "Email Route ({alias})" }
+      "email_routing": { "name": "Email Route ({alias})" },
+      "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" }
     },
     "button": {
       "purge_cache": { "name": "Purge Cache" }

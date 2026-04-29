@@ -56,6 +56,9 @@ async def async_setup_entry(
                 CloudflareEmailRoutingSwitch(coordinator, zone_id, zone_name, email_rule)
             )
 
+    for gateway_rule in coordinator.data.get("gateway_rules", []):
+        entities.append(CloudflareGatewayRuleSwitch(coordinator, gateway_rule))
+
     async_add_entities(entities)
 
 
@@ -118,7 +121,7 @@ class CloudflareSettingSwitch(
         return DeviceInfo(
             identifiers={(DOMAIN, self._zone_id)},
             name=self._zone_name,
-            model=f"Cloudflare Zone Management {self._zone_name}",
+            model="Cloudflare Zone Management",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
@@ -190,7 +193,7 @@ class CloudflarePageRuleSwitch(
         return DeviceInfo(
             identifiers={(DOMAIN, self._zone_id)},
             name=self._zone_name,
-            model=f"Cloudflare Zone Management {self._zone_name}",
+            model="Cloudflare Zone Management",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
@@ -274,7 +277,96 @@ class CloudflareEmailRoutingSwitch(
         return DeviceInfo(
             identifiers={(DOMAIN, self._zone_id)},
             name=self._zone_name,
-            model=f"Cloudflare Zone Management {self._zone_name}",
+            model="Cloudflare Zone Management",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareGatewayRuleSwitch(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SwitchEntity
+):
+    """Switch for a Cloudflare Zero Trust Gateway Rule."""
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        rule: dict[str, Any],
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._rule_id = rule["id"]
+        self._rule = rule
+        self._attr_unique_id = f"gateway_rule_{self._rule_id}"
+        self._attr_translation_key = "gateway_rule"
+        self._attr_has_entity_name = True
+        
+        rule_name = rule.get("name", "Gateway Rule")
+        self._attr_translation_placeholders = {"rule_name": rule_name}
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the rule is active."""
+        rules = self.coordinator.data.get("gateway_rules", [])
+        for r in rules:
+            if r["id"] == self._rule_id:
+                return r.get("enabled", False)
+        return False
+
+    async def _update_rule(self, enabled: bool) -> None:
+        """Update the rule enabled status."""
+        zones = self.coordinator.data.get("zones", {})
+        account_id = None
+        if zones:
+            account_id = list(zones.values())[0].get("info", {}).get("account", {}).get("id")
+        
+        if not account_id:
+            try:
+                accounts = await self.coordinator.client.get_accounts()
+                if accounts:
+                    account_id = accounts[0]["id"]
+            except Exception:
+                pass
+
+        if not account_id:
+            return
+
+        payload = {
+            "name": self._rule.get("name", ""),
+            "enabled": enabled,
+            "action": self._rule.get("action", ""),
+            "filters": self._rule.get("filters", []),
+            "conditions": self._rule.get("conditions", []),
+            "description": self._rule.get("description", ""),
+            "rule_settings": self._rule.get("rule_settings", {}),
+        }
+        await self.coordinator.client.update_gateway_rule(
+            account_id, self._rule_id, payload
+        )
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the rule on."""
+        await self._update_rule(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the rule off."""
+        await self._update_rule(False)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for Account level."""
+        config_url = "https://dash.cloudflare.com"
+        zones = self.coordinator.data.get("zones", {})
+        if zones:
+            first_zone = list(zones.values())[0]
+            account_id = first_zone.get("info", {}).get("account", {}).get("id")
+            if account_id:
+                config_url = f"https://dash.cloudflare.com/{account_id}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account Resources",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )

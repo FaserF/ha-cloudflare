@@ -91,6 +91,9 @@
       },
       "email_routing": {
         "name": "E-Mail-Weiterleitung ({alias})"
+      },
+      "gateway_rule": {
+        "name": "Zero Trust Richtlinie ({rule_name})"
       }
     },
     "button": {

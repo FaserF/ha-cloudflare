@@ -118,3 +118,11 @@ async def test_api_client_requests(mock_api_client) -> None:
     assert len(email_rules) == 1
     assert email_rules[0]["id"] == "rule_id"
     assert email_rules[0]["enabled"] is True
+
+    mock_api_client.get_gateway_rules.return_value = [
+        {"id": "gw_rule_id", "enabled": True, "name": "Block YouTube"}
+    ]
+    gw_rules = await mock_api_client.get_gateway_rules("account_id")
+    assert len(gw_rules) == 1
+    assert gw_rules[0]["id"] == "gw_rule_id"
+    assert gw_rules[0]["enabled"] is True

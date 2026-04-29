@@ -411,3 +411,19 @@ class CloudflareApiClient:
             "PUT", f"zones/{zone_id}/email/routing/rules/{rule_id}", json_data=rule_data
         )
         return result.get("result", {})
+
+    async def get_gateway_rules(self, account_id: str) -> list[dict[str, Any]]:
+        """Get Zero Trust gateway rules for an account."""
+        try:
+            result = await self._request("GET", f"accounts/{account_id}/gateway/rules")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch Zero Trust gateway rules: %s", err)
+            return []
+
+    async def update_gateway_rule(self, account_id: str, rule_id: str, rule_data: dict[str, Any]) -> Any:
+        """Update a specific Zero Trust gateway rule."""
+        result = await self._request(
+            "PUT", f"accounts/{account_id}/gateway/rules/{rule_id}", json_data=rule_data
+        )
+        return result.get("result", {})

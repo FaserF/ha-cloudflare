@@ -65,7 +65,7 @@ class CloudflarePurgeCacheButton(
         return DeviceInfo(
             identifiers={(DOMAIN, self._zone_id)},
             name=self._zone_name,
-            model=f"Cloudflare Zone Management {self._zone_name}",
+            model="Cloudflare Zone Management",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
