@@ -56,6 +56,11 @@ async def async_setup_entry(
                 CloudflareEmailRoutingSwitch(coordinator, zone_id, zone_name, email_rule)
             )
 
+        for waf_rule in zone_data.get("waf_rules", []):
+            entities.append(
+                CloudflareWafRuleSwitch(coordinator, zone_id, zone_name, waf_rule)
+            )
+
     for gateway_rule in coordinator.data.get("gateway_rules", []):
         entities.append(CloudflareGatewayRuleSwitch(coordinator, gateway_rule))
 
@@ -367,6 +372,79 @@ class CloudflareGatewayRuleSwitch(
         return DeviceInfo(
             identifiers={(DOMAIN, "cloudflare_account_level")},
             name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareWafRuleSwitch(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SwitchEntity
+):
+    """Switch for a Cloudflare WAF Custom Rule."""
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+        rule: dict[str, Any],
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._rule_id = rule["id"]
+        self._rule = rule
+        self._attr_unique_id = f"{zone_id}_waf_rule_{self._rule_id}"
+        self._attr_translation_key = "waf_rule"
+        self._attr_has_entity_name = True
+
+        rule_desc = rule.get("description", "WAF Rule")
+        self._attr_translation_placeholders = {"rule_desc": rule_desc}
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the rule is active."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        rules = zone_data.get("waf_rules", [])
+        for r in rules:
+            if r["id"] == self._rule_id:
+                return r.get("enabled", False)
+        return False
+
+    async def _update_rule(self, enabled: bool) -> None:
+        """Update the rule enabled status."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        ruleset_id = zone_data.get("custom_ruleset_id")
+        if not ruleset_id:
+            return
+
+        await self.coordinator.client.update_zone_ruleset_rule(
+            self._zone_id, ruleset_id, self._rule_id, enabled
+        )
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the rule on."""
+        await self._update_rule(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the rule off."""
+        await self._update_rule(False)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model=f"Cloudflare Zone Management {self._zone_name}",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )

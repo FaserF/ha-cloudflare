@@ -134,3 +134,18 @@ async def test_api_client_requests(mock_api_client) -> None:
     assert len(lb_pools) == 1
     assert lb_pools[0]["id"] == "lb_pool_id"
     assert lb_pools[0]["health"] == "healthy"
+
+    mock_api_client.get_zone_rulesets.return_value = [
+        {"id": "rs_id", "phase": "http_request_firewall_custom"}
+    ]
+    rulesets = await mock_api_client.get_zone_rulesets("zone_id")
+    assert len(rulesets) == 1
+    assert rulesets[0]["id"] == "rs_id"
+
+    mock_api_client.get_zone_ruleset_rules.return_value = [
+        {"id": "rule_id", "enabled": True, "description": "Block SQLi"}
+    ]
+    waf_rules = await mock_api_client.get_zone_ruleset_rules("zone_id", "rs_id")
+    assert len(waf_rules) == 1
+    assert waf_rules[0]["id"] == "rule_id"
+    assert waf_rules[0]["enabled"] is True

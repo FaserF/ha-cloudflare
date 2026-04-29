@@ -67,7 +67,8 @@
       "development_mode": { "name": "Development Mode" },
       "page_rule": { "name": "Page Rule ({url_target})" },
       "email_routing": { "name": "Email Route ({alias})" },
-      "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" }
+      "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" },
+      "waf_rule": { "name": "WAF Rule ({rule_desc})" }
     },
     "button": {
       "purge_cache": { "name": "Purge Cache" }

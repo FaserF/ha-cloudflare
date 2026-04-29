@@ -436,3 +436,32 @@ class CloudflareApiClient:
         except Exception as err:
             _LOGGER.debug("Failed to fetch Load Balancer pools: %s", err)
             return []
+
+    async def get_zone_rulesets(self, zone_id: str) -> list[dict[str, Any]]:
+        """Get rulesets for a zone."""
+        try:
+            result = await self._request("GET", f"zones/{zone_id}/rulesets")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch zone rulesets: %s", err)
+            return []
+
+    async def get_zone_ruleset_rules(self, zone_id: str, ruleset_id: str) -> list[dict[str, Any]]:
+        """Get rules in a specific ruleset for a zone."""
+        try:
+            result = await self._request("GET", f"zones/{zone_id}/rulesets/{ruleset_id}")
+            return result.get("result", {}).get("rules", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch ruleset rules: %s", err)
+            return []
+
+    async def update_zone_ruleset_rule(
+        self, zone_id: str, ruleset_id: str, rule_id: str, enabled: bool
+    ) -> Any:
+        """Update a specific rule in a zone ruleset."""
+        result = await self._request(
+            "PATCH",
+            f"zones/{zone_id}/rulesets/{ruleset_id}/rules/{rule_id}",
+            json_data={"enabled": enabled},
+        )
+        return result.get("result", {})

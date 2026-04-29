@@ -97,6 +97,9 @@
       },
       "gateway_rule": {
         "name": "Zero Trust Policy ({rule_name})"
+      },
+      "waf_rule": {
+        "name": "WAF Rule ({rule_desc})"
       }
     },
     "button": {

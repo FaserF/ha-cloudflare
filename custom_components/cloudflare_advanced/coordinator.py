@@ -106,6 +106,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     firewall_task = self.client.get_firewall_events(zone_id)
                     cert_packs_task = self.client.get_certificate_packs(zone_id)
                     email_rules_task = self.client.get_email_routing_rules(zone_id)
+                    rulesets_task = self.client.get_zone_rulesets(zone_id)
 
                     zone_results = await asyncio.gather(
                         settings_task,
@@ -116,6 +117,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         firewall_task,
                         cert_packs_task,
                         email_rules_task,
+                        rulesets_task,
                         return_exceptions=True,
                     )
                     (
@@ -127,7 +129,22 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         firewall,
                         cert_packs,
                         email_rules,
+                        rulesets,
                     ) = zone_results
+
+                    waf_rules = []
+                    custom_ruleset_id = None
+                    if not isinstance(rulesets, Exception) and rulesets:
+                        for ruleset in rulesets:
+                            if ruleset.get("phase") == "http_request_firewall_custom":
+                                custom_ruleset_id = ruleset["id"]
+                                try:
+                                    waf_rules = await self.client.get_zone_ruleset_rules(
+                                        zone_id, custom_ruleset_id
+                                    )
+                                except Exception as waf_err:
+                                    _LOGGER.debug("Failed to fetch WAF rules: %s", waf_err)
+                                break
 
                     dns_list = (
                         dns_records if not isinstance(dns_records, Exception) else []
@@ -188,6 +205,8 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "email_rules": email_rules
                         if not isinstance(email_rules, Exception)
                         else [],
+                        "waf_rules": waf_rules,
+                        "custom_ruleset_id": custom_ruleset_id,
                     }
 
             # 3. Fetch Tunnels & Account level services
