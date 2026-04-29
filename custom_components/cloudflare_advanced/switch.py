@@ -73,6 +73,33 @@ async def async_setup_entry(
                 "WebSockets",
             )
         )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "brotli",
+                "Brotli",
+            )
+        )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "hotlink_protection",
+                "Hotlink Protection",
+            )
+        )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "early_hints",
+                "Early Hints",
+            )
+        )
 
         for rule in zone_data.get("page_rules", []):
             entities.append(

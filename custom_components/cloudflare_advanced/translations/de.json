@@ -109,6 +109,15 @@
       "websockets": {
         "name": "WebSockets"
       },
+      "brotli": {
+        "name": "Brotli"
+      },
+      "hotlink_protection": {
+        "name": "Hotlink-Schutz"
+      },
+      "early_hints": {
+        "name": "Early Hints"
+      },
       "page_rule": {
         "name": "Seitenregel ({url_target})"
       },

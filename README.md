@@ -40,7 +40,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **Turnstile Widgets**: Monitor mode configurations.
   - **Cloudflare Images**: Monitor stored vs allowed capacities.
 - **Configurable Control**:
-  - **Zone Settings**: Toggles for Development Mode, Always Use HTTPS, Automatic HTTPS Rewrites, IPv6 Compatibility, Rocket Loader, and WebSockets.
+  - **Zone Settings**: Toggles for Development Mode, Always Use HTTPS, Automatic HTTPS Rewrites, IPv6 Compatibility, Rocket Loader, WebSockets, Brotli, Hotlink Protection, and Early Hints.
   - **Security Level**: Dropdown options to force immediate strictness (`off`, `essentially_off`, `low`, `medium`, `high`, `under_attack`).
   - **Page Rules**: Disable or enable individual URL filters.
   - **Email Routing**: Toggle custom email forwarding rules on or off.
