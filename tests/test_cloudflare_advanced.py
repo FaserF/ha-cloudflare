@@ -149,3 +149,11 @@ async def test_api_client_requests(mock_api_client) -> None:
     assert len(waf_rules) == 1
     assert waf_rules[0]["id"] == "rule_id"
     assert waf_rules[0]["enabled"] is True
+
+    mock_api_client.get_registrar_domains.return_value = [
+        {"id": "domain_id", "name": "example.com", "registry_expires_at": "2027-06-19T18:30:00Z"}
+    ]
+    reg_domains = await mock_api_client.get_registrar_domains("account_id")
+    assert len(reg_domains) == 1
+    assert reg_domains[0]["name"] == "example.com"
+    assert reg_domains[0]["registry_expires_at"] == "2027-06-19T18:30:00Z"

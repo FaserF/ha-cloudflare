@@ -137,6 +137,8 @@ class CloudflarePageRuleSwitch(
 ):
     """Switch for a Cloudflare Page Rule."""
 
+    _attr_entity_registry_enabled_default = False
+
     def __init__(
         self,
         coordinator: CloudflareAdvancedCoordinator,
@@ -208,6 +210,8 @@ class CloudflareEmailRoutingSwitch(
     CoordinatorEntity[CloudflareAdvancedCoordinator], SwitchEntity
 ):
     """Switch for a Cloudflare Email Routing Rule."""
+
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
@@ -292,6 +296,8 @@ class CloudflareGatewayRuleSwitch(
     CoordinatorEntity[CloudflareAdvancedCoordinator], SwitchEntity
 ):
     """Switch for a Cloudflare Zero Trust Gateway Rule."""
+
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
@@ -382,6 +388,8 @@ class CloudflareWafRuleSwitch(
 ):
     """Switch for a Cloudflare WAF Custom Rule."""
 
+    _attr_entity_registry_enabled_default = False
+
     def __init__(
         self,
         coordinator: CloudflareAdvancedCoordinator,
@@ -444,7 +452,7 @@ class CloudflareWafRuleSwitch(
         return DeviceInfo(
             identifiers={(DOMAIN, self._zone_id)},
             name=self._zone_name,
-            model=f"Cloudflare Zone Management {self._zone_name}",
+            model="Cloudflare Zone Management",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )

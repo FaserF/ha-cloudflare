@@ -465,3 +465,12 @@ class CloudflareApiClient:
             json_data={"enabled": enabled},
         )
         return result.get("result", {})
+
+    async def get_registrar_domains(self, account_id: str) -> list[dict[str, Any]]:
+        """Get domains registered via Cloudflare Registrar."""
+        try:
+            result = await self._request("GET", f"accounts/{account_id}/registrar/registrations")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch registrar domains: %s", err)
+            return []

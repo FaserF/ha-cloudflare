@@ -54,6 +54,10 @@ async def async_setup_entry(
     for project in coordinator.data.get("pages_projects", []):
         entities.append(CloudflarePagesSensor(coordinator, project))
 
+    # Add Registrar Domain Sensors
+    for domain in coordinator.data.get("registrar_domains", []):
+        entities.append(CloudflareRegistrarDomainSensor(coordinator, domain))
+
     async_add_entities(entities)
 
 
@@ -120,6 +124,8 @@ class CloudflareWorkerSensor(
 ):
     """Sensor for Cloudflare Worker Deployment status."""
 
+    _attr_entity_registry_enabled_default = False
+
     def __init__(
         self,
         coordinator: CloudflareAdvancedCoordinator,
@@ -164,6 +170,8 @@ class CloudflareTurnstileSensor(
     CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
 ):
     """Sensor for Cloudflare Turnstile widgets."""
+
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
@@ -261,6 +269,8 @@ class CloudflarePagesSensor(
     CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
 ):
     """Sensor for Cloudflare Pages deployment status."""
+
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
@@ -375,3 +385,73 @@ class CloudflareCertificateSensor(
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
+
+
+class CloudflareRegistrarDomainSensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
+):
+    """Sensor for Cloudflare Registrar Domain expiration."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        domain: dict[str, Any],
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._domain_name = domain["name"]
+        self._attr_unique_id = f"registrar_domain_{self._domain_name}"
+        self._attr_translation_key = "registrar_domain"
+        self._attr_has_entity_name = True
+        self._attr_translation_placeholders = {"domain_name": self._domain_name}
+
+    @property
+    def native_value(self) -> Any | None:
+        """Return the expiration date."""
+        from datetime import datetime
+        registrar_domains = self.coordinator.data.get("registrar_domains", [])
+        for d in registrar_domains:
+            if d["name"] == self._domain_name:
+                expires_at = d.get("registry_expires_at")
+                if expires_at:
+                    try:
+                        return datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+                    except ValueError:
+                        pass
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return domain attributes."""
+        registrar_domains = self.coordinator.data.get("registrar_domains", [])
+        for d in registrar_domains:
+            if d["name"] == self._domain_name:
+                return {
+                    "auto_renew": d.get("auto_renew", True),
+                    "status": d.get("status", "active"),
+                    "privacy": d.get("privacy", True),
+                    "registry_created_at": d.get("registry_created_at", ""),
+                }
+        return {}
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for Account level."""
+        config_url = "https://dash.cloudflare.com"
+        zones = self.coordinator.data.get("zones", {})
+        if zones:
+            first_zone = list(zones.values())[0]
+            account_id = first_zone.get("info", {}).get("account", {}).get("id")
+            if account_id:
+                config_url = f"https://dash.cloudflare.com/{account_id}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+

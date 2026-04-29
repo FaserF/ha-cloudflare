@@ -122,6 +122,7 @@ class CloudflareHealthCheckBinarySensor(
     """Binary sensor for Cloudflare Health Checks."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
@@ -176,6 +177,7 @@ class CloudflareAccessAppBinarySensor(
     """Binary sensor for Cloudflare Access Applications status."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
@@ -235,6 +237,7 @@ class CloudflareLoadBalancerPoolBinarySensor(
     """Binary sensor for Cloudflare Load Balancer Pool Health."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,

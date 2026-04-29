@@ -32,6 +32,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **Details**: Track active connection counts and connector daemon versions.
   - **Gateway Policies**: Toggle Zero Trust DNS/HTTP policies on or off.
   - **Load Balancer Pools**: View health diagnostics for origin server distributions.
+  - **Registrar Domains**: Track the expiration date of domains registered via Cloudflare.
 - **Access Applications, Edge Workers & Pages**: 
   - **Access Apps**: Monitor active statuses for protected assets.
   - **Workers Deployment**: Get uptime diagnostics for deployed Cloudflare Workers.

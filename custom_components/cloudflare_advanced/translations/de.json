@@ -66,6 +66,9 @@
       "firewall_events": {
         "name": "Letztes Sicherheitsereignis"
       },
+      "registrar_domain": {
+        "name": "Domain-Ablaufdatum ({domain_name})"
+      },
       "worker_deployment": {
         "name": "Worker-Bereitstellung"
       },

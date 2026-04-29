@@ -66,6 +66,9 @@
       "firewall_events": {
         "name": "Last Security Event"
       },
+      "registrar_domain": {
+        "name": "Domain Expiry ({domain_name})"
+      },
       "worker_deployment": {
         "name": "Worker Deployment"
       },
