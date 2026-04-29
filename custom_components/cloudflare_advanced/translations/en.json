@@ -88,6 +88,9 @@
       },
       "page_rule": {
         "name": "Page Rule ({url_target})"
+      },
+      "email_routing": {
+        "name": "Email Route ({alias})"
       }
     },
     "button": {

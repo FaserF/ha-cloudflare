@@ -88,6 +88,9 @@
       },
       "page_rule": {
         "name": "Seitenregel ({url_target})"
+      },
+      "email_routing": {
+        "name": "E-Mail-Weiterleitung ({alias})"
       }
     },
     "button": {

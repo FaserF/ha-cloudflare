@@ -110,3 +110,11 @@ async def test_api_client_requests(mock_api_client) -> None:
     cert_packs = await mock_api_client.get_certificate_packs("zone_id")
     assert len(cert_packs) == 1
     assert cert_packs[0]["certificates"][0]["expires_on"] == "2026-12-31T23:59:59Z"
+
+    mock_api_client.get_email_routing_rules.return_value = [
+        {"id": "rule_id", "enabled": True, "matchers": [{"value": "alias@example.com"}]}
+    ]
+    email_rules = await mock_api_client.get_email_routing_rules("zone_id")
+    assert len(email_rules) == 1
+    assert email_rules[0]["id"] == "rule_id"
+    assert email_rules[0]["enabled"] is True

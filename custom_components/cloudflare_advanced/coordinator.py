@@ -105,6 +105,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     page_rules_task = self.client.get_page_rules(zone_id)
                     firewall_task = self.client.get_firewall_events(zone_id)
                     cert_packs_task = self.client.get_certificate_packs(zone_id)
+                    email_rules_task = self.client.get_email_routing_rules(zone_id)
 
                     zone_results = await asyncio.gather(
                         settings_task,
@@ -114,6 +115,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         page_rules_task,
                         firewall_task,
                         cert_packs_task,
+                        email_rules_task,
                         return_exceptions=True,
                     )
                     (
@@ -124,6 +126,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         page_rules,
                         firewall,
                         cert_packs,
+                        email_rules,
                     ) = zone_results
 
                     dns_list = (
@@ -181,6 +184,9 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         else [],
                         "cert_packs": cert_packs
                         if not isinstance(cert_packs, Exception)
+                        else [],
+                        "email_rules": email_rules
+                        if not isinstance(email_rules, Exception)
                         else [],
                     }
 

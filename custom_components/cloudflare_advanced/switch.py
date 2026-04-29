@@ -51,6 +51,11 @@ async def async_setup_entry(
                 CloudflarePageRuleSwitch(coordinator, zone_id, zone_name, rule)
             )
 
+        for email_rule in zone_data.get("email_rules", []):
+            entities.append(
+                CloudflareEmailRoutingSwitch(coordinator, zone_id, zone_name, email_rule)
+            )
+
     async_add_entities(entities)
 
 
@@ -170,6 +175,90 @@ class CloudflarePageRuleSwitch(
         self._rule["status"] = "disabled"
         await self.coordinator.client.update_page_rule(
             self._zone_id, self._rule_id, self._rule
+        )
+        await self.coordinator.async_request_refresh()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model=f"Cloudflare Zone Management {self._zone_name}",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareEmailRoutingSwitch(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SwitchEntity
+):
+    """Switch for a Cloudflare Email Routing Rule."""
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+        rule: dict[str, Any],
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._rule_id = rule["id"]
+        self._rule = rule
+        self._attr_unique_id = f"{zone_id}_email_routing_{self._rule_id}"
+        self._attr_translation_key = "email_routing"
+        self._attr_has_entity_name = True
+
+        matchers = rule.get("matchers", [])
+        alias = (
+            matchers[0].get("value") if matchers else "Email Rule"
+        )
+        self._attr_translation_placeholders = {"alias": alias}
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the rule is active."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        rules = zone_data.get("email_rules", [])
+        for r in rules:
+            if r["id"] == self._rule_id:
+                return r.get("enabled", False)
+        return False
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the rule on."""
+        self._rule["enabled"] = True
+        payload = {
+            "actions": self._rule.get("actions", []),
+            "matchers": self._rule.get("matchers", []),
+            "enabled": True,
+            "name": self._rule.get("name", "")
+        }
+        await self.coordinator.client.update_email_routing_rule(
+            self._zone_id, self._rule_id, payload
+        )
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the rule off."""
+        self._rule["enabled"] = False
+        payload = {
+            "actions": self._rule.get("actions", []),
+            "matchers": self._rule.get("matchers", []),
+            "enabled": False,
+            "name": self._rule.get("name", "")
+        }
+        await self.coordinator.client.update_email_routing_rule(
+            self._zone_id, self._rule_id, payload
         )
         await self.coordinator.async_request_refresh()
 

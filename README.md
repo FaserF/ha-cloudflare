@@ -39,6 +39,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **Zone Settings**: Toggles for Development Mode, Always Use HTTPS, and Automatic HTTPS Rewrites.
   - **Security Level**: Dropdown options to force immediate strictness (`off`, `essentially_off`, `low`, `medium`, `high`, `under_attack`).
   - **Page Rules**: Disable or enable individual URL filters.
+  - **Email Routing**: Toggle custom email forwarding rules on or off.
   - **Security Logs**: Tracks external attack properties (`Country`, `IP Address`, `Rule Triggered`).
 - **Smart Tracking & Logic**:
   - **Automated DDNS Updates**: Automatically detects your router's public IP changes using `Home Assistant` networking infrastructure, seamlessly propagating dynamic changes onto mapped Zone A-Records.

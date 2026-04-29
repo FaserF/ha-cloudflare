@@ -395,3 +395,19 @@ class CloudflareApiClient:
         except Exception as err:
             _LOGGER.debug("Failed to fetch certificate packs: %s", err)
             return []
+
+    async def get_email_routing_rules(self, zone_id: str) -> list[dict[str, Any]]:
+        """Get email routing rules for a specific zone."""
+        try:
+            result = await self._request("GET", f"zones/{zone_id}/email/routing/rules")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch email routing rules: %s", err)
+            return []
+
+    async def update_email_routing_rule(self, zone_id: str, rule_id: str, rule_data: dict[str, Any]) -> Any:
+        """Update a specific email routing rule."""
+        result = await self._request(
+            "PUT", f"zones/{zone_id}/email/routing/rules/{rule_id}", json_data=rule_data
+        )
+        return result.get("result", {})
