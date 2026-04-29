@@ -85,6 +85,13 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             all_zones = await self.client.get_zones()
             account_id = None
 
+            try:
+                accounts = await self.client.get_accounts()
+                if accounts:
+                    account_id = accounts[0]["id"]
+            except Exception as acc_err:
+                _LOGGER.debug("Failed to fetch accounts directly: %s", acc_err)
+
             for zone in all_zones:
                 zone_id = zone["id"]
                 if zone_id in self.zone_ids:

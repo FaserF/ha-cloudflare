@@ -97,6 +97,15 @@ class CloudflareApiClient:
         result = await self._request("GET", "zones")
         return result.get("result", [])
 
+    async def get_accounts(self) -> list[dict[str, Any]]:
+        """Get all accounts the credentials have access to."""
+        try:
+            result = await self._request("GET", "accounts")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch accounts: %s", err)
+            return []
+
     async def get_zone_settings(self, zone_id: str) -> list[dict[str, Any]]:
         """Get settings for a specific zone."""
         result = await self._request("GET", f"zones/{zone_id}/settings")
