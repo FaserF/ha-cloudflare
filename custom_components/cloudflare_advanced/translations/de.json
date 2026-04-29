@@ -26,6 +26,12 @@
           "zones": "Zonen",
           "enable_ddns": "DDNS aktivieren (A-Records mit öffentlicher IP aktualisieren)"
         }
+      },
+      "select_records": {
+        "description": "Wähle die DNS A-Records aus, die mit deiner öffentlichen IP aktuell gehalten werden sollen.",
+        "data": {
+          "records": "DNS-Einträge"
+        }
       }
     },
     "error": {
@@ -46,101 +52,55 @@
           "email": "E-Mail",
           "api_key": "Globaler API-Schlüssel",
           "update_interval": "Aktualisierungsintervall (Sekunden)",
-          "enable_ddns": "DDNS aktivieren (A-Records mit öffentlicher IP aktualisieren)"
+          "enable_ddns": "DDNS aktivieren"
+        }
+      },
+      "records": {
+        "description": "Wähle die DNS A-Records aus, die mit deiner öffentlichen IP aktuell gehalten werden sollen.",
+        "data": {
+          "records": "DNS-Einträge"
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "requests": {
-        "name": "Anfragen"
-      },
-      "bytes": {
-        "name": "Bandbreite"
-      },
-      "threats": {
-        "name": "Blockierte Bedrohungen"
-      },
-      "uniques": {
-        "name": "Eindeutige Besucher"
-      },
-      "firewall_events": {
-        "name": "Letztes Sicherheitsereignis"
-      },
-      "registrar_domain": {
-        "name": "Domain-Ablaufdatum ({domain_name})"
-      },
-      "images_current": {
-        "name": "Gespeicherte Bilder"
-      },
-      "images_allowed": {
-        "name": "Erlaubte Bilder"
-      },
-      "worker_deployment": {
-        "name": "Worker-Bereitstellung"
-      },
-      "pages_deployment": {
-        "name": "Pages-Projekt {project_name}"
-      },
-      "certificate_expiration": {
-        "name": "Zertifikatsablauf"
-      },
-      "lb_pool": {
-        "name": "Load-Balancer-Pool ({pool_name})"
-      }
+      "requests": { "name": "Anfragen" },
+      "bytes": { "name": "Bandbreite" },
+      "threats": { "name": "Bedrohungen blockiert" },
+      "uniques": { "name": "Einzigartige Besucher" },
+      "firewall_events": { "name": "Letztes Sicherheitsereignis" },
+      "registrar_domain": { "name": "Domain-Ablauf ({domain_name})" },
+      "images_current": { "name": "Gespeicherte Bilder" },
+      "images_allowed": { "name": "Erlaubte Bilder" },
+      "worker_deployment": { "name": "Worker-Deployment" },
+      "pages_deployment": { "name": "Pages-Projekt {project_name}" },
+      "certificate_expiration": { "name": "Zertifikatsablauf" },
+      "lb_pool": { "name": "Load Balancer Pool ({pool_name})" }
     },
     "switch": {
-      "always_use_https": {
-        "name": "Immer HTTPS verwenden"
-      },
-      "automatic_https_rewrites": {
-        "name": "Automatische HTTPS-Umschreibungen"
-      },
-      "development_mode": {
-        "name": "Entwicklungsmodus"
-      },
-      "ipv6": {
-        "name": "IPv6-Kompatibilität"
-      },
-      "rocket_loader": {
-        "name": "Rocket Loader"
-      },
-      "websockets": {
-        "name": "WebSockets"
-      },
-      "brotli": {
-        "name": "Brotli"
-      },
-      "hotlink_protection": {
-        "name": "Hotlink-Schutz"
-      },
-      "early_hints": {
-        "name": "Early Hints"
-      },
-      "page_rule": {
-        "name": "Seitenregel ({url_target})"
-      },
-      "email_routing": {
-        "name": "E-Mail-Weiterleitung ({alias})"
-      },
-      "gateway_rule": {
-        "name": "Zero Trust Richtlinie ({rule_name})"
-      },
-      "waf_rule": {
-        "name": "WAF-Regel ({rule_desc})"
-      },
-      "cache_rule": {
-        "name": "Cache-Regel ({rule_desc})"
-      },
-      "registrar_auto_renew": {
-        "name": "Automatische Domain-Verlängerung ({domain_name})"
-      }
+      "always_use_https": { "name": "Immer HTTPS verwenden" },
+      "automatic_https_rewrites": { "name": "Automatische HTTPS-Umschreibungen" },
+      "development_mode": { "name": "Entwicklungsmodus" },
+      "ipv6": { "name": "IPv6-Kompatibilität" },
+      "rocket_loader": { "name": "Rocket Loader" },
+      "websockets": { "name": "WebSockets" },
+      "brotli": { "name": "Brotli" },
+      "hotlink_protection": { "name": "Hotlink-Schutz" },
+      "early_hints": { "name": "Early Hints" },
+      "http2": { "name": "HTTP/2" },
+      "http3": { "name": "HTTP/3" },
+      "0-rtt": { "name": "0-RTT Verbindungs-Wiederaufnahme" },
+      "opportunistic_encryption": { "name": "Opportunistische Verschlüsselung" },
+      "page_rule": { "name": "Seitenregel ({url_target})" },
+      "email_routing": { "name": "E-Mail-Weiterleitung ({alias})" },
+      "gateway_rule": { "name": "Zero Trust Richtlinie ({rule_name})" },
+      "waf_rule": { "name": "WAF-Regel ({rule_desc})" },
+      "cache_rule": { "name": "Cache-Regel ({rule_desc})" },
+      "registrar_auto_renew": { "name": "Domain-Autoverlängerung ({domain_name})" }
     },
     "button": {
-      "purge_cache": {
-        "name": "Cache leeren"
-      }
+      "purge_cache": { "name": "Cache leeren" }
     },
     "select": {
       "security_level": {
@@ -154,26 +114,20 @@
           "under_attack": "Unter Angriff!"
         }
       },
-      "tls_1_3": {
-        "name": "TLS 1.3"
-      },
-      "min_tls_version": {
-        "name": "Minimale TLS-Version"
-      },
-      "ssl": {
-        "name": "SSL-Modus"
-      }
+      "tls_1_3": { "name": "TLS 1.3" },
+      "min_tls_version": { "name": "Minimale TLS-Version" },
+      "ssl": { "name": "SSL-Modus" }
     },
     "binary_sensor": {
-      "tunnel": {
-        "name": "Tunnel"
-      },
-      "health_check": {
-        "name": "Zustandsprüfung {check_name}"
-      },
-      "access_app": {
-        "name": "Access-Anwendung {app_name}"
-      }
+      "tunnel": { "name": "Tunnel" },
+      "health_check": { "name": "Zustandsprüfung {check_name}" },
+      "access_app": { "name": "Access Anwendung {app_name}" }
+    }
+  },
+  "services": {
+    "update_records": {
+      "name": "DDNS-Einträge aktualisieren",
+      "description": "Manuelle Aktualisierung der ausgewählten Cloudflare-DNS-Einträge mit der aktuellen öffentlichen IP auslösen."
     }
   }
 }

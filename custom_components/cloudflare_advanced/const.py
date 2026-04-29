@@ -8,6 +8,7 @@ CONF_API_KEY = "api_key"
 CONF_ZONES = "zones"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_ENABLE_DDNS = "enable_ddns"
+CONF_RECORDS = "records"
 
 API_URL = "https://api.cloudflare.com/client/v4"
 GRAPHQL_URL = "https://api.cloudflare.com/client/v4/graphql"

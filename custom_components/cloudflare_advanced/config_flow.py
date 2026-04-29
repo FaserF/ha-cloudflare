@@ -19,6 +19,7 @@ from .const import (
     CONF_ZONES,
     CONF_UPDATE_INTERVAL,
     CONF_ENABLE_DDNS,
+    CONF_RECORDS,
     DOMAIN,
 )
 
@@ -44,6 +45,9 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
         self._email: str | None = None
         self._api_key: str | None = None
         self._zones: list[dict[str, Any]] = []
+        self._selected_zone_ids: list[str] = []
+        self._enable_ddns: bool = False
+        self._selected_records: list[str] = []
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -160,32 +164,21 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
         errors: dict[str, str] = {}
         try:
             if user_input is not None:
-                selected_zone_ids = user_input[CONF_ZONES]
-                enable_ddns = user_input.get(CONF_ENABLE_DDNS, False)
-
-                data = {
-                    CONF_API_TOKEN: self._api_token,
-                    CONF_EMAIL: self._email,
-                    CONF_API_KEY: self._api_key,
-                    CONF_ZONES: selected_zone_ids,
-                    CONF_ENABLE_DDNS: enable_ddns,
-                }
+                self._selected_zone_ids = user_input[CONF_ZONES]
+                self._enable_ddns = user_input.get(CONF_ENABLE_DDNS, False)
 
                 unique_id = (
-                    selected_zone_ids[0]
-                    if selected_zone_ids
+                    self._selected_zone_ids[0]
+                    if self._selected_zone_ids
                     else "cloudflare_advanced_entry"
                 )
                 await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured()
 
-                account_name = "Cloudflare Advanced"
-                if self._zones:
-                    acc_name = self._zones[0].get("account", {}).get("name")
-                    if acc_name:
-                        account_name = f"Cloudflare ({acc_name})"
+                if self._enable_ddns:
+                    return await self.async_step_select_records()
 
-                return self.async_create_entry(title=account_name, data=data)
+                return self._async_create_entry()
 
             zone_options = {zone["id"]: zone["name"] for zone in self._zones}
 
@@ -211,14 +204,86 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
                 ),
                 errors=errors,
             )
-        except Exception as ex:
-            _LOGGER.error("Exception in async_step_select_zones: %s", ex, exc_info=True)
-            errors["base"] = "cannot_connect"
+    async def async_step_select_records(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Step for selecting DNS records for DDNS."""
+        errors: dict[str, str] = {}
+        try:
+            if user_input is not None:
+                return self._async_create_entry(records=user_input[CONF_RECORDS])
+
+            session = async_get_clientsession(self.hass)
+            if self._api_token:
+                client = CloudflareApiClient(session, api_token=self._api_token)
+            else:
+                client = CloudflareApiClient(
+                    session, email=self._email, api_key=self._api_key
+                )
+
+            all_records = []
+            for zone_id in self._selected_zone_ids:
+                zone_records = await client.get_dns_records(zone_id)
+                all_records.extend(zone_records)
+
+            record_options = {
+                rec["id"]: f"{rec['name']} ({rec['type']})"
+                for rec in all_records
+                if rec["type"] == "A"
+            }
+
+            if not record_options:
+                return self._async_create_entry()
+
             return self.async_show_form(
-                step_id="token",
-                data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
+                step_id="select_records",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required(CONF_RECORDS): selector(
+                            {
+                                "select": {
+                                    "multiple": True,
+                                    "options": [
+                                        {"value": r_id, "label": r_name}
+                                        for r_id, r_name in record_options.items()
+                                    ],
+                                }
+                            }
+                        ),
+                    }
+                ),
                 errors=errors,
             )
+        except Exception as ex:
+            _LOGGER.error("Exception in async_step_select_records: %s", ex, exc_info=True)
+            errors["base"] = "cannot_connect"
+            return self._async_create_entry()
+
+    @callback
+    def _async_create_entry(
+        self, records: list[str] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Create the config entry."""
+        data = {
+            CONF_ZONES: self._selected_zone_ids,
+            CONF_ENABLE_DDNS: self._enable_ddns,
+        }
+        if self._api_token:
+            data[CONF_API_TOKEN] = self._api_token
+        else:
+            data[CONF_EMAIL] = self._email
+            data[CONF_API_KEY] = self._api_key
+
+        if records:
+            data[CONF_RECORDS] = records
+        
+        account_name = "Cloudflare Advanced"
+        if self._zones:
+            acc_name = self._zones[0].get("account", {}).get("name")
+            if acc_name:
+                account_name = f"Cloudflare ({acc_name})"
+
+        return self.async_create_entry(title=account_name, data=data)
 
 
 class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
@@ -229,6 +294,9 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
+            self._options = user_input
+            if user_input.get(CONF_ENABLE_DDNS):
+                return await self.async_step_records()
             return self.async_create_entry(title="", data=user_input)
 
         # Get current values
@@ -263,4 +331,57 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(options_schema),
+        )
+
+    async def async_step_records(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Step for selecting DNS records for DDNS in options."""
+        if user_input is not None:
+            self._options.update(user_input)
+            return self.async_create_entry(title="", data=self._options)
+
+        session = async_get_clientsession(self.hass)
+        coordinator = self.hass.data[DOMAIN][self.config_entry.entry_id]
+        client = coordinator.client
+        
+        selected_zone_ids = self.config_entry.data.get(CONF_ZONES, [])
+        current_records = self.config_entry.options.get(
+            CONF_RECORDS, self.config_entry.data.get(CONF_RECORDS, [])
+        )
+
+        record_options = {}
+        for zone_id in selected_zone_ids:
+            try:
+                zone_data = coordinator.data.get("zones", {}).get(zone_id, {})
+                zone_name = zone_data.get("info", {}).get("name", zone_id)
+                records = await client.get_dns_records(zone_id)
+                for record in records:
+                    if record.get("type") == "A":
+                        rec_name = record["name"]
+                        rec_id = record["id"]
+                        record_options[rec_id] = f"{rec_name} ({zone_name})"
+            except Exception as ex:
+                _LOGGER.warning("Failed to fetch records for zone %s: %s", zone_id, ex)
+
+        if not record_options:
+            return self.async_create_entry(title="", data=self._options)
+
+        return self.async_show_form(
+            step_id="records",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_RECORDS, default=current_records): selector(
+                        {
+                            "select": {
+                                "multiple": True,
+                                "options": [
+                                    {"value": r_id, "label": r_name}
+                                    for r_id, r_name in record_options.items()
+                                ],
+                            }
+                        }
+                    ),
+                }
+            ),
         )

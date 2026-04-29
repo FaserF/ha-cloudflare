@@ -26,6 +26,12 @@
           "zones": "Zones",
           "enable_ddns": "Enable DDNS (Update A records with public IP)"
         }
+      },
+      "select_records": {
+        "description": "Select the DNS A-records you want to keep updated with your public IP.",
+        "data": {
+          "records": "DNS Records"
+        }
       }
     },
     "error": {
@@ -47,6 +53,12 @@
           "api_key": "Global API Key",
           "update_interval": "Update Interval (Seconds)",
           "enable_ddns": "Enable DDNS (Update A records with public IP)"
+        }
+      },
+      "records": {
+        "description": "Select the DNS A-records you want to keep updated with your public IP.",
+        "data": {
+          "records": "DNS Records"
         }
       }
     }
@@ -76,6 +88,10 @@
       "brotli": { "name": "Brotli" },
       "hotlink_protection": { "name": "Hotlink Protection" },
       "early_hints": { "name": "Early Hints" },
+      "http2": { "name": "HTTP/2" },
+      "http3": { "name": "HTTP/3" },
+      "0-rtt": { "name": "0-RTT Connection" },
+      "opportunistic_encryption": { "name": "Opportunistic Encryption" },
       "page_rule": { "name": "Page Rule ({url_target})" },
       "email_routing": { "name": "Email Route ({alias})" },
       "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" },
@@ -106,6 +122,12 @@
       "tunnel": { "name": "Tunnel" },
       "health_check": { "name": "Health Check {check_name}" },
       "access_app": { "name": "Access Application {app_name}" }
+    }
+  },
+  "services": {
+    "update_records": {
+      "name": "Update DDNS Records",
+      "description": "Manually trigger an update of the selected Cloudflare DNS records with the current public IP."
     }
   }
 }

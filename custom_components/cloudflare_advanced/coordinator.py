@@ -47,6 +47,10 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             CONF_ENABLE_DDNS, entry.data.get(CONF_ENABLE_DDNS, False)
         )
 
+        self.ddns_records = entry.options.get(
+            CONF_RECORDS, entry.data.get(CONF_RECORDS, [])
+        )
+
         super().__init__(
             hass,
             _LOGGER,
@@ -163,11 +167,12 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         dns_records if not isinstance(dns_records, Exception) else []
                     )
 
-                    # Perform automatic DDNS update if IP changed and enabled
+                    # Perform automatic DDNS update if IP changed and enabled for this record
                     if self.enable_ddns and public_ip and dns_list:
                         for record in dns_list:
                             if (
                                 record.get("type") == "A"
+                                and record.get("id") in self.ddns_records
                                 and record.get("content") != public_ip
                             ):
                                 _LOGGER.info(

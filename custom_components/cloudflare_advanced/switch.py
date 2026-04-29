@@ -100,6 +100,42 @@ async def async_setup_entry(
                 "Early Hints",
             )
         )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "http2",
+                "HTTP/2",
+            )
+        )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "http3",
+                "HTTP/3 (with QUIC)",
+            )
+        )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "0-rtt",
+                "0-RTT Connection Resumption",
+            )
+        )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "opportunistic_encryption",
+                "Opportunistic Encryption",
+            )
+        )
 
         for rule in zone_data.get("page_rules", []):
             entities.append(

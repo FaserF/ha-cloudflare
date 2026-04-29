@@ -26,6 +26,12 @@
           "zones": "Zones",
           "enable_ddns": "Enable DDNS (Update A records with public IP)"
         }
+      },
+      "select_records": {
+        "description": "Select the DNS A-records you want to keep updated with your public IP.",
+        "data": {
+          "records": "DNS Records"
+        }
       }
     },
     "error": {
@@ -48,99 +54,53 @@
           "update_interval": "Update Interval (Seconds)",
           "enable_ddns": "Enable DDNS (Update A records with public IP)"
         }
+      },
+      "records": {
+        "description": "Select the DNS A-records you want to keep updated with your public IP.",
+        "data": {
+          "records": "DNS Records"
+        }
       }
     }
   },
   "entity": {
     "sensor": {
-      "requests": {
-        "name": "Requests"
-      },
-      "bytes": {
-        "name": "Bandwidth"
-      },
-      "threats": {
-        "name": "Threats Blocked"
-      },
-      "uniques": {
-        "name": "Unique Visitors"
-      },
-      "firewall_events": {
-        "name": "Last Security Event"
-      },
-      "registrar_domain": {
-        "name": "Domain Expiry ({domain_name})"
-      },
-      "images_current": {
-        "name": "Stored Images"
-      },
-      "images_allowed": {
-        "name": "Allowed Images"
-      },
-      "worker_deployment": {
-        "name": "Worker Deployment"
-      },
-      "pages_deployment": {
-        "name": "Pages Project {project_name}"
-      },
-      "certificate_expiration": {
-        "name": "Certificate Expiration"
-      },
-      "lb_pool": {
-        "name": "Load Balancer Pool ({pool_name})"
-      }
+      "requests": { "name": "Requests" },
+      "bytes": { "name": "Bandwidth" },
+      "threats": { "name": "Threats Blocked" },
+      "uniques": { "name": "Unique Visitors" },
+      "firewall_events": { "name": "Last Security Event" },
+      "registrar_domain": { "name": "Domain Expiry ({domain_name})" },
+      "images_current": { "name": "Stored Images" },
+      "images_allowed": { "name": "Allowed Images" },
+      "worker_deployment": { "name": "Worker Deployment" },
+      "pages_deployment": { "name": "Pages Project {project_name}" },
+      "certificate_expiration": { "name": "Certificate Expiration" },
+      "lb_pool": { "name": "Load Balancer Pool {pool_name}" }
     },
     "switch": {
-      "always_use_https": {
-        "name": "Always Use HTTPS"
-      },
-      "automatic_https_rewrites": {
-        "name": "Automatic HTTPS Rewrites"
-      },
-      "development_mode": {
-        "name": "Development Mode"
-      },
-      "ipv6": {
-        "name": "IPv6 Compatibility"
-      },
-      "rocket_loader": {
-        "name": "Rocket Loader"
-      },
-      "websockets": {
-        "name": "WebSockets"
-      },
-      "brotli": {
-        "name": "Brotli"
-      },
-      "hotlink_protection": {
-        "name": "Hotlink Protection"
-      },
-      "early_hints": {
-        "name": "Early Hints"
-      },
-      "page_rule": {
-        "name": "Page Rule ({url_target})"
-      },
-      "email_routing": {
-        "name": "Email Route ({alias})"
-      },
-      "gateway_rule": {
-        "name": "Zero Trust Policy ({rule_name})"
-      },
-      "waf_rule": {
-        "name": "WAF Rule ({rule_desc})"
-      },
-      "cache_rule": {
-        "name": "Cache Rule ({rule_desc})"
-      },
-      "registrar_auto_renew": {
-        "name": "Domain Auto-Renew ({domain_name})"
-      }
+      "always_use_https": { "name": "Always Use HTTPS" },
+      "automatic_https_rewrites": { "name": "Automatic HTTPS Rewrites" },
+      "development_mode": { "name": "Development Mode" },
+      "ipv6": { "name": "IPv6 Compatibility" },
+      "rocket_loader": { "name": "Rocket Loader" },
+      "websockets": { "name": "WebSockets" },
+      "brotli": { "name": "Brotli" },
+      "hotlink_protection": { "name": "Hotlink Protection" },
+      "early_hints": { "name": "Early Hints" },
+      "http2": { "name": "HTTP/2" },
+      "http3": { "name": "HTTP/3" },
+      "0-rtt": { "name": "0-RTT Connection Resumption" },
+      "opportunistic_encryption": { "name": "Opportunistic Encryption" },
+      "page_rule": { "name": "Page Rule ({url_target})" },
+      "email_routing": { "name": "Email Route ({alias})" },
+      "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" },
+      "waf_rule": { "name": "WAF Rule ({rule_desc})" },
+      "cache_rule": { "name": "Cache Rule ({rule_desc})" },
+      "registrar_auto_renew": { "name": "Domain Auto-Renew ({domain_name})" }
     },
     "button": {
-      "purge_cache": {
-        "name": "Purge Cache"
-      }
+      "purge_cache": { "name": "Purge Cache" }
     },
     "select": {
       "security_level": {
@@ -154,26 +114,20 @@
           "under_attack": "Under Attack!"
         }
       },
-      "tls_1_3": {
-        "name": "TLS 1.3"
-      },
-      "min_tls_version": {
-        "name": "Minimum TLS Version"
-      },
-      "ssl": {
-        "name": "SSL Mode"
-      }
+      "tls_1_3": { "name": "TLS 1.3" },
+      "min_tls_version": { "name": "Minimum TLS Version" },
+      "ssl": { "name": "SSL Mode" }
     },
     "binary_sensor": {
-      "tunnel": {
-        "name": "Tunnel"
-      },
-      "health_check": {
-        "name": "Health Check {check_name}"
-      },
-      "access_app": {
-        "name": "Access Application {app_name}"
-      }
+      "tunnel": { "name": "Tunnel" },
+      "health_check": { "name": "Health Check {check_name}" },
+      "access_app": { "name": "Access Application {app_name}" }
+    }
+  },
+  "services": {
+    "update_records": {
+      "name": "Update DDNS Records",
+      "description": "Manually trigger an update of the selected Cloudflare DNS records with the current public IP."
     }
   }
 }

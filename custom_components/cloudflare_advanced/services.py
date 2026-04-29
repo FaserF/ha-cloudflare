@@ -16,6 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 SERVICE_PURGE_CACHE = "purge_cache"
 SERVICE_UPDATE_DNS_RECORD = "update_dns_record"
 SERVICE_CREATE_DNS_RECORD = "create_dns_record"
+SERVICE_UPDATE_RECORDS = "update_records"
 
 PURGE_CACHE_SCHEMA = vol.Schema(
     {
@@ -125,6 +126,11 @@ def async_setup_services(
                 ex,
             )
 
+    async def async_handle_update_records(call: ServiceCall) -> None:
+        """Handle update records service (trigger DDNS)."""
+        _LOGGER.info("Triggering Cloudflare DDNS update")
+        await coordinator.async_request_refresh()
+
     hass.services.async_register(
         DOMAIN, SERVICE_PURGE_CACHE, async_handle_purge_cache, schema=PURGE_CACHE_SCHEMA
     )
@@ -134,6 +140,12 @@ def async_setup_services(
         SERVICE_UPDATE_DNS_RECORD,
         async_handle_update_dns_record,
         schema=UPDATE_DNS_RECORD_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_UPDATE_RECORDS,
+        async_handle_update_records,
     )
 
     hass.services.async_register(
@@ -149,3 +161,4 @@ def async_unload_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_PURGE_CACHE)
     hass.services.async_remove(DOMAIN, SERVICE_UPDATE_DNS_RECORD)
     hass.services.async_remove(DOMAIN, SERVICE_CREATE_DNS_RECORD)
+    hass.services.async_remove(DOMAIN, SERVICE_UPDATE_RECORDS)
