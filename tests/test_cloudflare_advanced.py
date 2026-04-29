@@ -162,3 +162,7 @@ async def test_api_client_requests(mock_api_client) -> None:
     img_stats = await mock_api_client.get_images_stats("account_id")
     assert img_stats["count"]["current"] == 42
     assert img_stats["count"]["allowed"] == 10000
+
+    mock_api_client.update_registrar_domain.return_value = {"auto_renew": True}
+    update_res = await mock_api_client.update_registrar_domain("account_id", "example.com", True)
+    assert update_res["auto_renew"] is True

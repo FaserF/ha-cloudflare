@@ -483,3 +483,14 @@ class CloudflareApiClient:
         except Exception as err:
             _LOGGER.debug("Failed to fetch Cloudflare Images stats: %s", err)
             return {}
+
+    async def update_registrar_domain(
+        self, account_id: str, domain_name: str, auto_renew: bool
+    ) -> dict[str, Any]:
+        """Update registrar domain auto-renew status."""
+        result = await self._request(
+            "PATCH",
+            f"accounts/{account_id}/registrar/registrations/{domain_name}",
+            json_data={"auto_renew": auto_renew},
+        )
+        return result.get("result", {})

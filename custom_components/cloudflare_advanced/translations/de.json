@@ -112,6 +112,9 @@
       },
       "cache_rule": {
         "name": "Cache-Regel ({rule_desc})"
+      },
+      "registrar_auto_renew": {
+        "name": "Automatische Domain-Verlängerung ({domain_name})"
       }
     },
     "button": {

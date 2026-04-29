@@ -69,6 +69,9 @@ async def async_setup_entry(
     for gateway_rule in coordinator.data.get("gateway_rules", []):
         entities.append(CloudflareGatewayRuleSwitch(coordinator, gateway_rule))
 
+    for domain in coordinator.data.get("registrar_domains", []):
+        entities.append(CloudflareRegistrarAutoRenewSwitch(coordinator, domain))
+
     async_add_entities(entities)
 
 
@@ -536,4 +539,76 @@ class CloudflareCacheRuleSwitch(
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
+
+
+class CloudflareRegistrarAutoRenewSwitch(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SwitchEntity
+):
+    """Switch for a Cloudflare Registrar Domain Auto-Renew status."""
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        domain: dict[str, Any],
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._domain_name = domain["name"]
+        self._attr_unique_id = f"registrar_domain_auto_renew_{self._domain_name}"
+        self._attr_translation_key = "registrar_auto_renew"
+        self._attr_has_entity_name = True
+        self._attr_translation_placeholders = {"domain_name": self._domain_name}
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the domain auto-renews."""
+        registrar_domains = self.coordinator.data.get("registrar_domains", [])
+        for d in registrar_domains:
+            if d["name"] == self._domain_name:
+                return d.get("auto_renew", True)
+        return False
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn on auto-renew."""
+        await self._update_auto_renew(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn off auto-renew."""
+        await self._update_auto_renew(False)
+
+    async def _update_auto_renew(self, enabled: bool) -> None:
+        """Update the auto-renew status via API."""
+        zones = self.coordinator.data.get("zones", {})
+        account_id = None
+        if zones:
+            first_zone = list(zones.values())[0]
+            account_id = first_zone.get("info", {}).get("account", {}).get("id")
+
+        if not account_id:
+            _LOGGER.error("No Account ID found to update registrar domain auto-renew")
+            return
+
+        await self.coordinator.client.update_registrar_domain(
+            account_id, self._domain_name, enabled
+        )
+        await self.coordinator.async_request_refresh()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for Account level."""
+        config_url = "https://dash.cloudflare.com"
+        zones = self.coordinator.data.get("zones", {})
+        if zones:
+            first_zone = list(zones.values())[0]
+            account_id = first_zone.get("info", {}).get("account", {}).get("id")
+            if account_id:
+                config_url = f"https://dash.cloudflare.com/{account_id}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
 

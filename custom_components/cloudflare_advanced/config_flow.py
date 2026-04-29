@@ -18,6 +18,7 @@ from .const import (
     CONF_EMAIL,
     CONF_ZONES,
     CONF_UPDATE_INTERVAL,
+    CONF_ENABLE_DDNS,
     DOMAIN,
 )
 
@@ -160,12 +161,14 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
         try:
             if user_input is not None:
                 selected_zone_ids = user_input[CONF_ZONES]
+                enable_ddns = user_input.get(CONF_ENABLE_DDNS, False)
 
                 data = {
                     CONF_API_TOKEN: self._api_token,
                     CONF_EMAIL: self._email,
                     CONF_API_KEY: self._api_key,
                     CONF_ZONES: selected_zone_ids,
+                    CONF_ENABLE_DDNS: enable_ddns,
                 }
 
                 unique_id = (

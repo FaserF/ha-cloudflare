@@ -72,7 +72,8 @@
       "email_routing": { "name": "Email Route ({alias})" },
       "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" },
       "waf_rule": { "name": "WAF Rule ({rule_desc})" },
-      "cache_rule": { "name": "Cache Rule ({rule_desc})" }
+      "cache_rule": { "name": "Cache Rule ({rule_desc})" },
+      "registrar_auto_renew": { "name": "Domain Auto-Renew ({domain_name})" }
     },
     "button": {
       "purge_cache": { "name": "Purge Cache" }
