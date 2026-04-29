@@ -46,6 +46,34 @@ async def async_setup_entry(
             )
         )
 
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "ipv6",
+                "IPv6 Compatibility",
+            )
+        )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "rocket_loader",
+                "Rocket Loader",
+            )
+        )
+        entities.append(
+            CloudflareSettingSwitch(
+                coordinator,
+                zone_id,
+                zone_name,
+                "websockets",
+                "WebSockets",
+            )
+        )
+
         for rule in zone_data.get("page_rules", []):
             entities.append(
                 CloudflarePageRuleSwitch(coordinator, zone_id, zone_name, rule)

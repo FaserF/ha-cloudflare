@@ -18,6 +18,7 @@ from .const import (
     CONF_API_KEY,
     CONF_ZONES,
     CONF_UPDATE_INTERVAL,
+    CONF_ENABLE_DDNS,
     DOMAIN,
 )
 from .api import CloudflareApiClient
@@ -42,6 +43,9 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.api_key = entry.options.get(CONF_API_KEY, entry.data.get(CONF_API_KEY))
         self.zone_ids = entry.data.get(CONF_ZONES, [])
         update_interval = entry.options.get(CONF_UPDATE_INTERVAL, 3600)
+        self.enable_ddns = entry.options.get(
+            CONF_ENABLE_DDNS, entry.data.get(CONF_ENABLE_DDNS, False)
+        )
 
         super().__init__(
             hass,
@@ -159,8 +163,8 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         dns_records if not isinstance(dns_records, Exception) else []
                     )
 
-                    # Perform automatic DDNS update if IP changed
-                    if public_ip and dns_list:
+                    # Perform automatic DDNS update if IP changed and enabled
+                    if self.enable_ddns and public_ip and dns_list:
                         for record in dns_list:
                             if (
                                 record.get("type") == "A"

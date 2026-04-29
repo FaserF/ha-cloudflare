@@ -23,7 +23,8 @@
       "select_zones": {
         "description": "Select the zones you want to monitor.",
         "data": {
-          "zones": "Zones"
+          "zones": "Zones",
+          "enable_ddns": "Enable DDNS (Update A records with public IP)"
         }
       }
     },
@@ -44,7 +45,8 @@
           "api_token": "API Token",
           "email": "Email",
           "api_key": "Global API Key",
-          "update_interval": "Update Interval (Seconds)"
+          "update_interval": "Update Interval (Seconds)",
+          "enable_ddns": "Enable DDNS (Update A records with public IP)"
         }
       }
     }

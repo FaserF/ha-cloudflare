@@ -49,7 +49,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **Domain Auto-Renew**: Toggle domain registration auto-renewals safely.
   - **Security Logs**: Tracks external attack properties (`Country`, `IP Address`, `Rule Triggered`).
 - **Smart Tracking & Logic**:
-  - **Automated DDNS Updates**: Automatically detects your router's public IP changes using `Home Assistant` networking infrastructure, seamlessly propagating dynamic changes onto mapped Zone A-Records.
+  - **Automated DDNS Updates**: Automatically detects your router's public IP changes using `Home Assistant` networking infrastructure, seamlessly propagating changes onto mapped Zone A-Records (Configurable via Options Flow).
   - **Cache Management**: Instantly purge your Cloudflare Zone Cache using custom hardware buttons.
 
 ## ❤️ Support This Project

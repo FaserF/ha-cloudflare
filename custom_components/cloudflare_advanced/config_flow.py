@@ -206,6 +206,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
                                 }
                             }
                         ),
+                        vol.Optional(CONF_ENABLE_DDNS, default=False): bool,
                     }
                 ),
                 errors=errors,
@@ -241,8 +242,11 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_API_KEY, self.config_entry.data.get(CONF_API_KEY, "")
         )
         update_interval = self.config_entry.options.get(CONF_UPDATE_INTERVAL, 3600)
+        enable_ddns = self.config_entry.options.get(
+            CONF_ENABLE_DDNS, self.config_entry.data.get(CONF_ENABLE_DDNS, False)
+        )
 
-        options_schema: dict[vol.Required, Any] = {}
+        options_schema: dict[vol.Required | vol.Optional, Any] = {}
 
         # Determine if we are using token or legacy auth
         if self.config_entry.data.get(CONF_API_TOKEN):
@@ -254,6 +258,7 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
         options_schema[vol.Required(CONF_UPDATE_INTERVAL, default=update_interval)] = (
             vol.All(vol.Coerce(int), vol.Range(min=10, max=3600))
         )
+        options_schema[vol.Optional(CONF_ENABLE_DDNS, default=enable_ddns)] = bool
 
         return self.async_show_form(
             step_id="init",

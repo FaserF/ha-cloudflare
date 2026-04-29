@@ -23,7 +23,8 @@
       "select_zones": {
         "description": "Wähle die Zonen aus, die du überwachen möchtest.",
         "data": {
-          "zones": "Zonen"
+          "zones": "Zonen",
+          "enable_ddns": "DDNS aktivieren (A-Records mit öffentlicher IP aktualisieren)"
         }
       }
     },
@@ -44,7 +45,8 @@
           "api_token": "API-Token",
           "email": "E-Mail",
           "api_key": "Globaler API-Schlüssel",
-          "update_interval": "Aktualisierungsintervall (Sekunden)"
+          "update_interval": "Aktualisierungsintervall (Sekunden)",
+          "enable_ddns": "DDNS aktivieren (A-Records mit öffentlicher IP aktualisieren)"
         }
       }
     }
