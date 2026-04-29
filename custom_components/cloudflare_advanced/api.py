@@ -377,3 +377,12 @@ class CloudflareApiClient:
             _LOGGER.warning("GraphQL firewall events fetch failed: %s", err)
 
         return []
+
+    async def get_certificate_packs(self, zone_id: str) -> list[dict[str, Any]]:
+        """Get SSL certificate packs for a specific zone."""
+        try:
+            result = await self._request("GET", f"zones/{zone_id}/ssl/certificate_packs")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch certificate packs: %s", err)
+            return []

@@ -103,3 +103,10 @@ async def test_api_client_requests(mock_api_client) -> None:
     assert len(pages) == 1
     assert pages[0]["name"] == "test-project"
     assert pages[0]["latest_deployment"]["status"] == "success"
+
+    mock_api_client.get_certificate_packs.return_value = [
+        {"certificates": [{"expires_on": "2026-12-31T23:59:59Z"}]}
+    ]
+    cert_packs = await mock_api_client.get_certificate_packs("zone_id")
+    assert len(cert_packs) == 1
+    assert cert_packs[0]["certificates"][0]["expires_on"] == "2026-12-31T23:59:59Z"

@@ -26,6 +26,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **Bandwidth**: Data transfer metrics (in Megabytes).
   - **Threats Blocked**: See how many malicious requests were prevented.
   - **Unique Visitors**: Track visitor metrics.
+  - **Certificate Expiration**: Monitor edge certificate expiry dates.
 - **Zero Trust & Tunnels**: 
   - **Tunnel Status**: Monitor status (Connected/Healthy) for Cloudflare Tunnels.
   - **Details**: Track active connection counts and connector daemon versions.

@@ -71,6 +71,9 @@
       },
       "pages_deployment": {
         "name": "Pages-Projekt {project_name}"
+      },
+      "certificate_expiration": {
+        "name": "Zertifikatsablauf"
       }
     },
     "switch": {

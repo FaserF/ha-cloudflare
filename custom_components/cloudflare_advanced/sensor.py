@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -40,6 +40,7 @@ async def async_setup_entry(
             CloudflareAnalyticsSensor(coordinator, zone_id, zone_name, "uniques")
         )
         entities.append(CloudflareFirewallEventSensor(coordinator, zone_id, zone_name))
+        entities.append(CloudflareCertificateSensor(coordinator, zone_id, zone_name))
 
     # Add Worker Sensors
     for worker in coordinator.data.get("workers", []):
@@ -311,6 +312,66 @@ class CloudflarePagesSensor(
         return DeviceInfo(
             identifiers={(DOMAIN, "cloudflare_account_level")},
             name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareCertificateSensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
+):
+    """Sensor for Cloudflare Edge Certificate Expiration."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._attr_unique_id = f"{zone_id}_certificate_expiration"
+        self._attr_translation_key = "certificate_expiration"
+        self._attr_has_entity_name = True
+
+    @property
+    def native_value(self) -> Any | None:
+        """Return certificate expiration date."""
+        from datetime import datetime, timezone
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        cert_packs = zone_data.get("cert_packs", [])
+        
+        earliest_expiry = None
+        for pack in cert_packs:
+            for cert in pack.get("certificates", []):
+                expires_on = cert.get("expires_on")
+                if expires_on:
+                    try:
+                        dt = datetime.fromisoformat(expires_on.replace("Z", "+00:00"))
+                        if earliest_expiry is None or dt < earliest_expiry:
+                            earliest_expiry = dt
+                    except ValueError:
+                        continue
+        
+        return earliest_expiry
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model=f"Cloudflare Zone Management {self._zone_name}",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
