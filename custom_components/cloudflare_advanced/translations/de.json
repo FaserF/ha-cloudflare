@@ -13,6 +13,9 @@
           "api_token": "API-Token"
         }
       },
+      "verify_token": {
+        "description": "Die folgenden Berechtigungen wurden für deinen Token erkannt:\n\n{permissions}\n\nKlicke auf ABSENDEN, um fortzufahren, wenn du mit den erkannten Funktionen zufrieden bist."
+      },
       "legacy": {
         "description": "Gib deine Cloudflare-E-Mail-Adresse und deinen globalen API-Schlüssel ein.",
         "data": {
@@ -60,6 +63,9 @@
         "data": {
           "records": "DNS-Einträge"
         }
+      },
+      "verify_token": {
+        "description": "Die folgenden Berechtigungen wurden für deinen Token erkannt:\n\n{permissions}\n\nKlicke auf ABSENDEN, um fortzufahren, wenn du mit den erkannten Funktionen zufrieden bist."
       }
     }
   },

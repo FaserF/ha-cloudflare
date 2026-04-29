@@ -114,23 +114,23 @@ For a comprehensive step-by-step tutorial, refer to the official [Cloudflare Tok
 Ensure your generated API Token follows the **Principle of Least Privilege**. Grant access solely to the required scopes for your selected domains:
 
 ### Required Scopes (Zone-level)
-- `Zone.Analytics` (Read) - For traffic & security metrics.
-- `Zone.Zone` (Read) - For zone discovery and metadata.
-- `Zone.Settings` (Read/Edit) - For performance and network toggles.
-- `Zone.Page Rules` (Read/Edit) - For URL filter management.
-- `Zone.DNS` (Read/Edit) - For DDNS updates and record control.
-- `Zone.WAF` (Read/Edit) - For custom WAF rule toggles.
-- `Zone.Rulesets` (Read/Edit) - For advanced Cache rules.
-- `Zone.Email Routing` (Read/Edit) - For email forwarding rule control.
-- `Zone.Cache Purge` (Edit) - For manual cache clearing.
+- `Analytics` (Read) - For traffic & security metrics.
+- `Zone` (Read) - For zone discovery and metadata.
+- `Zone Settings` (Read/Edit) - For performance and network toggles.
+- `Page Rules` (Read/Edit) - For URL filter management.
+- `DNS` (Read/Edit) - For DDNS updates and record control.
+- `Firewall Services` (Read/Edit) - For custom WAF rule toggles.
+- `Cache Rules` (Read/Edit) - For advanced Cache rules.
+- `Email Routing` (Read/Edit) - For email forwarding rule control.
+- `Cache Purge` (Edit) - For manual cache clearing.
 
 ### Optional Scopes (Account-level)
-- `Account.Cloudflare Zero Trust` (Read/Edit) - For Tunnels and Gateway policies.
-- `Account.Workers Scripts` (Read) - For Worker status tracking.
-- `Account.Cloudflare Pages` (Read) - For project deployment status.
-- `Account.Cloudflare Images` (Read) - For storage capacity monitoring.
-- `Account.Load Balancing` (Read) - For health diagnostics of LB pools.
-- `Account.Registrar` (Read/Edit) - For domain management and auto-renew toggles.
+- `Cloudflare Zero Trust` (Read/Edit) - For Tunnels and Gateway policies.
+- `Workers Scripts` (Read) - For Worker status tracking.
+- `Cloudflare Pages` (Read) - For project deployment status.
+- `Cloudflare Images` (Read) - For storage capacity monitoring.
+- `Load Balancing` (Read) - For health diagnostics of LB pools.
+- `Registrar` (Read/Edit) - For domain management and auto-renew toggles.
 
 
 ## 🧱 Services

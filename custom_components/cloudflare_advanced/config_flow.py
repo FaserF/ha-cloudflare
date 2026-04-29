@@ -26,6 +26,44 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def get_permissions_summary(probe_results: dict[str, bool]) -> str:
+    """Generate a markdown table of token permissions based on active probing."""
+
+    def get_status(key: str) -> str:
+        return "✅" if probe_results.get(key, False) else "❌"
+
+    # Define grouped categories for the table
+    rows = [
+        ("DNS & DDNS", "dns", "No IP updates possible"),
+        ("Analytics", "analytics", "No traffic statistics"),
+        (
+            "Zone Discovery",
+            "discovery",
+            "Active",
+        ),  # Always true if we reached this step
+        ("Settings", "settings", "Performance toggles missing"),
+        ("Security", "security", "WAF/Firewall rules missing"),
+        ("Caching", "caching", "Cache control missing"),
+        ("Zero Trust", "zt", "Tunnel info missing"),
+        ("Workers / Pages", "workers", "Deployments missing"),
+        ("Account Resources", "registrar", "Registrar/Images/LB missing"),
+    ]
+
+    header = "| Subsystem | Status | Missing Features |\n| :--- | :---: | :--- |\n"
+    table_rows = []
+
+    for name, key, note in rows:
+        if key == "discovery":
+            status = "✅"
+            note_text = "-"
+        else:
+            status = get_status(key)
+            note_text = "-" if status == "✅" else note
+        table_rows.append(f"| **{name}** | {status} | {note_text} |")
+
+    return header + "\n".join(table_rows)
+
+
 class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for Cloudflare Advanced."""
 
@@ -48,6 +86,8 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
         self._selected_zone_ids: list[str] = []
         self._enable_ddns: bool = False
         self._selected_records: list[str] = []
+        self._token_info: dict[str, Any] = {}
+        self._probe_results: dict[str, bool] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -88,11 +128,19 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
                 client = CloudflareApiClient(session, api_token=self._api_token)
 
                 if await client.verify_auth():
+                    self._token_info = await client.get_token_info()
                     self._zones = await client.get_zones()
+
+                    # Perform active probing
+                    accounts = await client.get_accounts()
+                    self._probe_results = await client.probe_permissions(
+                        self._zones, accounts
+                    )
+
                     if not self._zones:
                         errors["base"] = "no_zones"
                     else:
-                        return await self.async_step_select_zones()
+                        return await self.async_step_verify_token()
                 else:
                     errors["base"] = "invalid_auth"
 
@@ -109,6 +157,20 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
                 data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
                 errors=errors,
             )
+
+    async def async_step_verify_token(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Step to show token permissions summary."""
+        if user_input is not None:
+            return await self.async_step_select_zones()
+
+        summary = get_permissions_summary(self._probe_results)
+
+        return self.async_show_form(
+            step_id="verify_token",
+            description_placeholders={"permissions": summary},
+        )
 
     async def async_step_legacy(
         self, user_input: dict[str, Any] | None = None
@@ -300,12 +362,37 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
 class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle Cloudflare Advanced options."""
 
+    def __init__(self) -> None:
+        """Initialize."""
+        self._options: dict[str, Any] = {}
+        self._token_info: dict[str, Any] = {}
+        self._probe_results: dict[str, bool] = {}
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
             self._options = user_input
+
+            # Check if token changed
+            old_token = self.config_entry.options.get(
+                CONF_API_TOKEN, self.config_entry.data.get(CONF_API_TOKEN, "")
+            )
+            new_token = user_input.get(CONF_API_TOKEN)
+
+            if new_token and new_token != old_token:
+                session = async_get_clientsession(self.hass)
+                client = CloudflareApiClient(session, api_token=new_token)
+                self._token_info = await client.get_token_info()
+
+                # Perform active probing
+                zones = await client.get_zones()
+                accounts = await client.get_accounts()
+                self._probe_results = await client.probe_permissions(zones, accounts)
+
+                return await self.async_step_verify_token()
+
             if user_input.get(CONF_ENABLE_DDNS):
                 return await self.async_step_records()
             return self.async_create_entry(title="", data=user_input)
@@ -342,6 +429,22 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(options_schema),
+        )
+
+    async def async_step_verify_token(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Step to show token permissions summary in options."""
+        if user_input is not None:
+            if self._options.get(CONF_ENABLE_DDNS):
+                return await self.async_step_records()
+            return self.async_create_entry(title="", data=self._options)
+
+        summary = get_permissions_summary(self._probe_results)
+
+        return self.async_show_form(
+            step_id="verify_token",
+            description_placeholders={"permissions": summary},
         )
 
     async def async_step_records(

@@ -13,6 +13,9 @@
           "api_token": "API Token"
         }
       },
+      "verify_token": {
+        "description": "The following permissions were detected for your token:\n\n{permissions}\n\nClick SUBMIT to continue if you are satisfied with the detected capabilities."
+      },
       "legacy": {
         "description": "Enter your Cloudflare Account Email and Global API Key.",
         "data": {
@@ -24,7 +27,7 @@
         "description": "Select the zones you want to monitor.",
         "data": {
           "zones": "Zones",
-          "enable_ddns": "Enable DDNS (Update A records with public IP)"
+          "enable_ddns": "Enable DDNS (Select A records in next step)"
         }
       },
       "select_records": {
@@ -60,6 +63,9 @@
         "data": {
           "records": "DNS Records"
         }
+      },
+      "verify_token": {
+        "description": "The following permissions were detected for your token:\n\n{permissions}\n\nClick SUBMIT to continue if you are satisfied with the detected capabilities."
       }
     }
   },

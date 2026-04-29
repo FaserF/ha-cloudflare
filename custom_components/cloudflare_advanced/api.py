@@ -115,6 +115,87 @@ class CloudflareApiClient:
                 return False
         return False
 
+    async def get_token_info(self) -> dict[str, Any]:
+        """Get information about the current API token."""
+        if not self.api_token:
+            return {}
+        try:
+            result = await self._request("GET", "user/tokens/verify")
+            return result.get("result", {})
+        except Exception as err:
+            _LOGGER.error("Failed to get token info: %s", err)
+            return {}
+
+    async def probe_permissions(
+        self, zones: list[dict[str, Any]], accounts: list[dict[str, Any]]
+    ) -> dict[str, bool]:
+        """Probe various endpoints to detect actual permissions."""
+        results = {
+            "dns": False,
+            "analytics": False,
+            "settings": False,
+            "security": False,
+            "caching": False,
+            "zt": False,
+            "workers": False,
+            "registrar": False,
+        }
+
+        if not zones and not accounts:
+            return results
+
+        # 1-5: Zone-level permissions (extract from first zone's metadata if available)
+        if zones:
+            zone = zones[0]
+            perms = zone.get("permissions", [])
+            results["dns"] = any(
+                "dns_records:edit" in p or "dns_records:read" in p for p in perms
+            )
+            results["analytics"] = any("analytics:read" in p for p in perms)
+            results["settings"] = any(
+                "zone_settings:edit" in p or "zone_settings:read" in p for p in perms
+            )
+            results["security"] = any(
+                "waf:edit" in p or "waf:read" in p or "pagerules:edit" in p
+                for p in perms
+            )
+            results["caching"] = any(
+                "cache_purge:edit" in p or "cache_purge:read" in p for p in perms
+            )
+
+        # 6-8: Account-level permissions (probe all accounts found in zones or direct access)
+        account_ids = {a["id"] for a in accounts}
+        for z in zones:
+            if "account" in z and "id" in z["account"]:
+                account_ids.add(z["account"]["id"])
+
+        for acc_id in account_ids:
+            # Zero Trust Probe
+            if not results["zt"]:
+                try:
+                    await self.get_gateway_rules(acc_id)
+                    results["zt"] = True
+                except Exception:
+                    pass
+
+            # Workers Probe
+            if not results["workers"]:
+                try:
+                    await self.get_workers(acc_id)
+                    results["workers"] = True
+                except Exception:
+                    pass
+
+            # Registrar Probe
+            if not results["registrar"]:
+                try:
+                    await self.get_registrar_domains(acc_id)
+                    results["registrar"] = True
+                except Exception:
+                    pass
+
+        return results
+
     async def get_zones(self) -> list[dict[str, Any]]:
         """Get all zones (domains) in the account."""
         result = await self._request("GET", "zones")
@@ -175,17 +256,10 @@ class CloudflareApiClient:
 
     async def get_tunnels(self, account_id: str) -> list[dict[str, Any]]:
         """Get all Cloudflare Zero Trust Tunnels for an account."""
-        try:
-            result = await self._request(
-                "GET", f"accounts/{account_id}/tunnels?is_deleted=false"
-            )
-            return result.get("result", [])
-        except Exception as err:
-            _LOGGER.debug(
-                "Failed to fetch tunnels (Account ID required or not authorized): %s",
-                err,
-            )
-            return []
+        result = await self._request(
+            "GET", f"accounts/{account_id}/tunnels?is_deleted=false"
+        )
+        return result.get("result", [])
 
     async def get_tunnel_connections(
         self, account_id: str, tunnel_id: str
@@ -278,14 +352,8 @@ class CloudflareApiClient:
 
     async def get_workers(self, account_id: str) -> list[dict[str, Any]]:
         """Get all Workers for an account."""
-        try:
-            result = await self._request(
-                "GET", f"accounts/{account_id}/workers/services"
-            )
-            return result.get("result", [])
-        except Exception as err:
-            _LOGGER.debug("Failed to fetch Workers: %s", err)
-            return []
+        result = await self._request("GET", f"accounts/{account_id}/workers/services")
+        return result.get("result", [])
 
     async def get_turnstile_widgets(self, account_id: str) -> list[dict[str, Any]]:
         """Get all Turnstile widgets for an account."""
@@ -325,12 +393,8 @@ class CloudflareApiClient:
 
     async def get_page_rules(self, zone_id: str) -> list[dict[str, Any]]:
         """Get all page rules for a zone."""
-        try:
-            result = await self._request("GET", f"zones/{zone_id}/pagerules")
-            return result.get("result", [])
-        except Exception as err:
-            _LOGGER.debug("Failed to fetch Page Rules: %s", err)
-            return []
+        result = await self._request("GET", f"zones/{zone_id}/pagerules")
+        return result.get("result", [])
 
     async def update_page_rule(
         self, zone_id: str, rule_id: str, rule_data: dict[str, Any]
@@ -469,12 +533,8 @@ class CloudflareApiClient:
 
     async def get_zone_rulesets(self, zone_id: str) -> list[dict[str, Any]]:
         """Get rulesets for a zone."""
-        try:
-            result = await self._request("GET", f"zones/{zone_id}/rulesets")
-            return result.get("result", [])
-        except Exception as err:
-            _LOGGER.debug("Failed to fetch zone rulesets: %s", err)
-            return []
+        result = await self._request("GET", f"zones/{zone_id}/rulesets")
+        return result.get("result", [])
 
     async def get_zone_ruleset_rules(
         self, zone_id: str, ruleset_id: str
@@ -502,14 +562,10 @@ class CloudflareApiClient:
 
     async def get_registrar_domains(self, account_id: str) -> list[dict[str, Any]]:
         """Get domains registered via Cloudflare Registrar."""
-        try:
-            result = await self._request(
-                "GET", f"accounts/{account_id}/registrar/registrations"
-            )
-            return result.get("result", [])
-        except Exception as err:
-            _LOGGER.debug("Failed to fetch registrar domains: %s", err)
-            return []
+        result = await self._request(
+            "GET", f"accounts/{account_id}/registrar/registrations"
+        )
+        return result.get("result", [])
 
     async def get_images_stats(self, account_id: str) -> dict[str, Any]:
         """Get Cloudflare Images usage statistics."""
