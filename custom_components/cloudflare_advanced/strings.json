@@ -69,7 +69,8 @@
       "page_rule": { "name": "Page Rule ({url_target})" },
       "email_routing": { "name": "Email Route ({alias})" },
       "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" },
-      "waf_rule": { "name": "WAF Rule ({rule_desc})" }
+      "waf_rule": { "name": "WAF Rule ({rule_desc})" },
+      "cache_rule": { "name": "Cache Rule ({rule_desc})" }
     },
     "button": {
       "purge_cache": { "name": "Purge Cache" }

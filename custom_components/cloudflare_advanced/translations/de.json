@@ -103,6 +103,9 @@
       },
       "waf_rule": {
         "name": "WAF-Regel ({rule_desc})"
+      },
+      "cache_rule": {
+        "name": "Cache-Regel ({rule_desc})"
       }
     },
     "button": {

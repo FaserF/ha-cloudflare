@@ -133,7 +133,9 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ) = zone_results
 
                     waf_rules = []
+                    cache_rules = []
                     custom_ruleset_id = None
+                    cache_ruleset_id = None
                     if not isinstance(rulesets, Exception) and rulesets:
                         for ruleset in rulesets:
                             if ruleset.get("phase") == "http_request_firewall_custom":
@@ -144,7 +146,14 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                     )
                                 except Exception as waf_err:
                                     _LOGGER.debug("Failed to fetch WAF rules: %s", waf_err)
-                                break
+                            elif ruleset.get("phase") == "http_request_cache_settings":
+                                cache_ruleset_id = ruleset["id"]
+                                try:
+                                    cache_rules = await self.client.get_zone_ruleset_rules(
+                                        zone_id, cache_ruleset_id
+                                    )
+                                except Exception as cache_err:
+                                    _LOGGER.debug("Failed to fetch Cache rules: %s", cache_err)
 
                     dns_list = (
                         dns_records if not isinstance(dns_records, Exception) else []
@@ -207,6 +216,8 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         else [],
                         "waf_rules": waf_rules,
                         "custom_ruleset_id": custom_ruleset_id,
+                        "cache_rules": cache_rules,
+                        "cache_ruleset_id": cache_ruleset_id,
                     }
 
             # 3. Fetch Tunnels & Account level services
