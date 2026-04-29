@@ -56,7 +56,8 @@
       "threats": { "name": "Threats Blocked" },
       "uniques": { "name": "Unique Visitors" },
       "firewall_events": { "name": "Last Security Event" },
-      "worker_deployment": { "name": "Worker Deployment" }
+      "worker_deployment": { "name": "Worker Deployment" },
+      "pages_deployment": { "name": "Pages Project {project_name}" }
     },
     "switch": {
       "always_use_https": { "name": "Always Use HTTPS" },

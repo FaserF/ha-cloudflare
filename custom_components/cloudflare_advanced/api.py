@@ -275,6 +275,16 @@ class CloudflareApiClient:
             _LOGGER.debug("Failed to fetch Access apps: %s", err)
             return []
 
+    async def get_pages_projects(self, account_id: str) -> list[dict[str, Any]]:
+        """Get all Cloudflare Pages projects for an account."""
+        try:
+            result = await self._request("GET", f"accounts/{account_id}/pages/projects")
+            return result.get("result", [])
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch Pages projects: %s", err)
+            return []
+
+
     async def create_dns_record(self, zone_id: str, record_data: dict[str, Any]) -> Any:
         """Create a new DNS record in a zone."""
         result = await self._request(

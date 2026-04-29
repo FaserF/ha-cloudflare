@@ -29,9 +29,10 @@ While generic DNS updates only provide simple IP changes, this integration lever
 - **Zero Trust & Tunnels**: 
   - **Tunnel Status**: Monitor status (Connected/Healthy) for Cloudflare Tunnels.
   - **Details**: Track active connection counts and connector daemon versions.
-- **Access Applications & Edge Workers**: 
+- **Access Applications, Edge Workers & Pages**: 
   - **Access Apps**: Monitor active statuses for protected assets.
   - **Workers Deployment**: Get uptime diagnostics for deployed Cloudflare Workers.
+  - **Pages Deployment**: Track the live deployment state of Cloudflare Pages.
   - **Turnstile Widgets**: Monitor mode configurations.
 - **Configurable Control**:
   - **Zone Settings**: Toggles for Development Mode, Always Use HTTPS, and Automatic HTTPS Rewrites.

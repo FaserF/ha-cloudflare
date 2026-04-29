@@ -49,6 +49,10 @@ async def async_setup_entry(
     for widget in coordinator.data.get("turnstile_widgets", []):
         entities.append(CloudflareTurnstileSensor(coordinator, widget))
 
+    # Add Cloudflare Pages Sensors
+    for project in coordinator.data.get("pages_projects", []):
+        entities.append(CloudflarePagesSensor(coordinator, project))
+
     async_add_entities(entities)
 
 
@@ -247,6 +251,66 @@ class CloudflareFirewallEventSensor(
             identifiers={(DOMAIN, self._zone_id)},
             name=self._zone_name,
             model=f"Cloudflare Zone Management {self._zone_name}",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflarePagesSensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
+):
+    """Sensor for Cloudflare Pages deployment status."""
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        project: dict[str, Any],
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._project_name = project["name"]
+        self._attr_unique_id = f"pages_{self._project_name}_deployment"
+        self._attr_translation_key = "pages_deployment"
+        self._attr_has_entity_name = True
+        self._attr_translation_placeholders = {"project_name": self._project_name}
+
+    @property
+    def native_value(self) -> Any:
+        """Return deployment status."""
+        for p in self.coordinator.data.get("pages_projects", []):
+            if p["name"] == self._project_name:
+                latest_deployment = p.get("latest_deployment", {})
+                if latest_deployment:
+                    return latest_deployment.get("status", "unknown")
+                return "No deployments"
+        return "Unknown"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return project details."""
+        for p in self.coordinator.data.get("pages_projects", []):
+            if p["name"] == self._project_name:
+                return {
+                    "subdomain": p.get("subdomain"),
+                    "production_branch": p.get("production_branch"),
+                    "updated_on": p.get("updated_on"),
+                }
+        return {}
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for Account level."""
+        config_url = "https://dash.cloudflare.com"
+        zones = self.coordinator.data.get("zones", {})
+        if zones:
+            first_zone = list(zones.values())[0]
+            account_id = first_zone.get("info", {}).get("account", {}).get("id")
+            if account_id:
+                config_url = f"https://dash.cloudflare.com/{account_id}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, "cloudflare_account_level")},
+            name="Cloudflare Account Resources",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )

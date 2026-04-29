@@ -64,6 +64,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "workers": [],
             "turnstile_widgets": [],
             "access_apps": [],
+            "pages_projects": [],
         }
 
         try:
@@ -176,21 +177,24 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 workers_task = self.client.get_workers(account_id)
                 turnstile_task = self.client.get_turnstile_widgets(account_id)
                 access_task = self.client.get_access_apps(account_id)
+                pages_task = self.client.get_pages_projects(account_id)
 
                 results = await asyncio.gather(
                     tunnels_task,
                     workers_task,
                     turnstile_task,
                     access_task,
+                    pages_task,
                     return_exceptions=True,
                 )
-                tunnels, workers, widgets, apps = results
+                tunnels, workers, widgets, apps, pages = results
 
                 data["workers"] = workers if not isinstance(workers, Exception) else []
                 data["turnstile_widgets"] = (
                     widgets if not isinstance(widgets, Exception) else []
                 )
                 data["access_apps"] = apps if not isinstance(apps, Exception) else []
+                data["pages_projects"] = pages if not isinstance(pages, Exception) else []
 
                 tunnels_list = tunnels if not isinstance(tunnels, Exception) else []
                 for tunnel in tunnels_list:  # type: ignore[union-attr]

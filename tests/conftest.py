@@ -159,7 +159,9 @@ def mock_api_client() -> Generator[AsyncMock]:
         client.get_dns_records = AsyncMock(return_value=[])
         client.get_analytics = AsyncMock(return_value={})
         client.get_tunnels = AsyncMock(return_value=[])
+        client.get_pages_projects = AsyncMock(return_value=[])
         yield client
+
 
 
 @pytest.fixture

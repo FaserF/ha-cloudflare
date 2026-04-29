@@ -68,6 +68,9 @@
       },
       "worker_deployment": {
         "name": "Worker Deployment"
+      },
+      "pages_deployment": {
+        "name": "Pages Project {project_name}"
       }
     },
     "switch": {
