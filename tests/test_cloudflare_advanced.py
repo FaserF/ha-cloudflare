@@ -6,7 +6,6 @@ import pytest
 from custom_components.cloudflare_advanced.const import DOMAIN
 
 
-
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Failing due to incomplete HomeAssistant mocks")
 async def test_config_flow_token(hass, mock_api_client) -> None:
@@ -151,18 +150,26 @@ async def test_api_client_requests(mock_api_client) -> None:
     assert waf_rules[0]["enabled"] is True
 
     mock_api_client.get_registrar_domains.return_value = [
-        {"id": "domain_id", "name": "example.com", "registry_expires_at": "2027-06-19T18:30:00Z"}
+        {
+            "id": "domain_id",
+            "name": "example.com",
+            "registry_expires_at": "2027-06-19T18:30:00Z",
+        }
     ]
     reg_domains = await mock_api_client.get_registrar_domains("account_id")
     assert len(reg_domains) == 1
     assert reg_domains[0]["name"] == "example.com"
     assert reg_domains[0]["registry_expires_at"] == "2027-06-19T18:30:00Z"
 
-    mock_api_client.get_images_stats.return_value = {"count": {"current": 42, "allowed": 10000}}
+    mock_api_client.get_images_stats.return_value = {
+        "count": {"current": 42, "allowed": 10000}
+    }
     img_stats = await mock_api_client.get_images_stats("account_id")
     assert img_stats["count"]["current"] == 42
     assert img_stats["count"]["allowed"] == 10000
 
     mock_api_client.update_registrar_domain.return_value = {"auto_renew": True}
-    update_res = await mock_api_client.update_registrar_domain("account_id", "example.com", True)
+    update_res = await mock_api_client.update_registrar_domain(
+        "account_id", "example.com", True
+    )
     assert update_res["auto_renew"] is True

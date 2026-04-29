@@ -93,6 +93,10 @@ class CloudflareAnalyticsSensor(
         self._attr_translation_key = sensor_type
         self._attr_has_entity_name = True
 
+        # Disable rarely used analytics by default
+        if sensor_type in ["threats", "uniques"]:
+            self._attr_entity_registry_enabled_default = False
+
         if sensor_type == "bytes":
             self._attr_native_unit_of_measurement = "MB"
         elif sensor_type in ["requests", "threats", "uniques"]:
@@ -361,10 +365,11 @@ class CloudflareCertificateSensor(
     @property
     def native_value(self) -> Any | None:
         """Return certificate expiration date."""
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
         cert_packs = zone_data.get("cert_packs", [])
-        
+
         earliest_expiry = None
         for pack in cert_packs:
             for cert in pack.get("certificates", []):
@@ -376,7 +381,7 @@ class CloudflareCertificateSensor(
                             earliest_expiry = dt
                     except ValueError:
                         continue
-        
+
         return earliest_expiry
 
     @property
@@ -422,6 +427,7 @@ class CloudflareRegistrarDomainSensor(
     def native_value(self) -> Any | None:
         """Return the expiration date."""
         from datetime import datetime
+
         registrar_domains = self.coordinator.data.get("registrar_domains", [])
         for d in registrar_domains:
             if d["name"] == self._domain_name:
@@ -516,6 +522,8 @@ class CloudflareRatelimitSensor(
 ):
     """Sensor for Cloudflare API Rate Limit."""
 
+    _attr_entity_registry_enabled_default = False
+
     def __init__(
         self,
         coordinator: CloudflareAdvancedCoordinator,
@@ -549,5 +557,3 @@ class CloudflareRatelimitSensor(
             manufacturer="Cloudflare",
             configuration_url="https://dash.cloudflare.com",
         )
-
-

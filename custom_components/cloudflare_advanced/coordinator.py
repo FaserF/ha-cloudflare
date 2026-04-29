@@ -19,6 +19,7 @@ from .const import (
     CONF_ZONES,
     CONF_UPDATE_INTERVAL,
     CONF_ENABLE_DDNS,
+    CONF_RECORDS,
     DOMAIN,
 )
 from .api import CloudflareApiClient
@@ -144,27 +145,38 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     cache_rules = []
                     custom_ruleset_id = None
                     cache_ruleset_id = None
-                    if not isinstance(rulesets, Exception) and rulesets:
-                        for ruleset in rulesets:
+                    rulesets_list: list[dict[str, Any]] = (
+                        rulesets if isinstance(rulesets, list) else []
+                    )
+                    if rulesets_list:
+                        for ruleset in rulesets_list:
                             if ruleset.get("phase") == "http_request_firewall_custom":
-                                custom_ruleset_id = ruleset["id"]
+                                custom_ruleset_id = str(ruleset["id"])
                                 try:
-                                    waf_rules = await self.client.get_zone_ruleset_rules(
-                                        zone_id, custom_ruleset_id
+                                    waf_rules = (
+                                        await self.client.get_zone_ruleset_rules(
+                                            zone_id, custom_ruleset_id
+                                        )
                                     )
                                 except Exception as waf_err:
-                                    _LOGGER.debug("Failed to fetch WAF rules: %s", waf_err)
+                                    _LOGGER.debug(
+                                        "Failed to fetch WAF rules: %s", waf_err
+                                    )
                             elif ruleset.get("phase") == "http_request_cache_settings":
-                                cache_ruleset_id = ruleset["id"]
+                                cache_ruleset_id = str(ruleset["id"])
                                 try:
-                                    cache_rules = await self.client.get_zone_ruleset_rules(
-                                        zone_id, cache_ruleset_id
+                                    cache_rules = (
+                                        await self.client.get_zone_ruleset_rules(
+                                            zone_id, cache_ruleset_id
+                                        )
                                     )
                                 except Exception as cache_err:
-                                    _LOGGER.debug("Failed to fetch Cache rules: %s", cache_err)
+                                    _LOGGER.debug(
+                                        "Failed to fetch Cache rules: %s", cache_err
+                                    )
 
-                    dns_list = (
-                        dns_records if not isinstance(dns_records, Exception) else []
+                    dns_list: list[dict[str, Any]] = (
+                        dns_records if isinstance(dns_records, list) else []
                     )
 
                     # Perform automatic DDNS update if IP changed and enabled for this record
@@ -184,9 +196,9 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                 try:
                                     await self.client.update_dns_record(
                                         zone_id,
-                                        record["id"],
+                                        str(record["id"]),
                                         {
-                                            "name": record["name"],
+                                            "name": str(record["name"]),
                                             "type": "A",
                                             "content": public_ip,
                                             "proxied": record.get("proxied", True),
@@ -253,22 +265,44 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     images_task,
                     return_exceptions=True,
                 )
-                tunnels, workers, widgets, apps, pages, gateway_rules, lb_pools, registrar, images = results
+                (
+                    tunnels,
+                    workers,
+                    widgets,
+                    apps,
+                    pages,
+                    gateway_rules,
+                    lb_pools,
+                    registrar,
+                    images,
+                ) = results
 
                 data["workers"] = workers if not isinstance(workers, Exception) else []
                 data["turnstile_widgets"] = (
                     widgets if not isinstance(widgets, Exception) else []
                 )
                 data["access_apps"] = apps if not isinstance(apps, Exception) else []
-                data["pages_projects"] = pages if not isinstance(pages, Exception) else []
-                data["gateway_rules"] = gateway_rules if not isinstance(gateway_rules, Exception) else []
-                data["load_balancer_pools"] = lb_pools if not isinstance(lb_pools, Exception) else []
-                data["registrar_domains"] = registrar if not isinstance(registrar, Exception) else []
-                data["images_stats"] = images if not isinstance(images, Exception) else {}
+                data["pages_projects"] = (
+                    pages if not isinstance(pages, Exception) else []
+                )
+                data["gateway_rules"] = (
+                    gateway_rules if not isinstance(gateway_rules, Exception) else []
+                )
+                data["load_balancer_pools"] = (
+                    lb_pools if not isinstance(lb_pools, Exception) else []
+                )
+                data["registrar_domains"] = (
+                    registrar if not isinstance(registrar, Exception) else []
+                )
+                data["images_stats"] = (
+                    images if not isinstance(images, Exception) else {}
+                )
 
-                tunnels_list = tunnels if not isinstance(tunnels, Exception) else []
-                for tunnel in tunnels_list:  # type: ignore[union-attr]
-                    tunnel_id = tunnel["id"]
+                tunnels_list: list[dict[str, Any]] = (
+                    tunnels if isinstance(tunnels, list) else []
+                )
+                for tunnel in tunnels_list:
+                    tunnel_id = str(tunnel["id"])
                     connections = await self.client.get_tunnel_connections(
                         account_id, tunnel_id
                     )

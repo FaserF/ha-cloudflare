@@ -316,7 +316,6 @@ class CloudflareApiClient:
             _LOGGER.debug("Failed to fetch Pages projects: %s", err)
             return []
 
-
     async def create_dns_record(self, zone_id: str, record_data: dict[str, Any]) -> Any:
         """Create a new DNS record in a zone."""
         result = await self._request(
@@ -413,7 +412,9 @@ class CloudflareApiClient:
     async def get_certificate_packs(self, zone_id: str) -> list[dict[str, Any]]:
         """Get SSL certificate packs for a specific zone."""
         try:
-            result = await self._request("GET", f"zones/{zone_id}/ssl/certificate_packs")
+            result = await self._request(
+                "GET", f"zones/{zone_id}/ssl/certificate_packs"
+            )
             return result.get("result", [])
         except Exception as err:
             _LOGGER.debug("Failed to fetch certificate packs: %s", err)
@@ -428,7 +429,9 @@ class CloudflareApiClient:
             _LOGGER.debug("Failed to fetch email routing rules: %s", err)
             return []
 
-    async def update_email_routing_rule(self, zone_id: str, rule_id: str, rule_data: dict[str, Any]) -> Any:
+    async def update_email_routing_rule(
+        self, zone_id: str, rule_id: str, rule_data: dict[str, Any]
+    ) -> Any:
         """Update a specific email routing rule."""
         result = await self._request(
             "PUT", f"zones/{zone_id}/email/routing/rules/{rule_id}", json_data=rule_data
@@ -444,7 +447,9 @@ class CloudflareApiClient:
             _LOGGER.debug("Failed to fetch Zero Trust gateway rules: %s", err)
             return []
 
-    async def update_gateway_rule(self, account_id: str, rule_id: str, rule_data: dict[str, Any]) -> Any:
+    async def update_gateway_rule(
+        self, account_id: str, rule_id: str, rule_data: dict[str, Any]
+    ) -> Any:
         """Update a specific Zero Trust gateway rule."""
         result = await self._request(
             "PUT", f"accounts/{account_id}/gateway/rules/{rule_id}", json_data=rule_data
@@ -454,7 +459,9 @@ class CloudflareApiClient:
     async def get_load_balancer_pools(self, account_id: str) -> list[dict[str, Any]]:
         """Get Load Balancer pools for an account."""
         try:
-            result = await self._request("GET", f"accounts/{account_id}/load_balancers/pools")
+            result = await self._request(
+                "GET", f"accounts/{account_id}/load_balancers/pools"
+            )
             return result.get("result", [])
         except Exception as err:
             _LOGGER.debug("Failed to fetch Load Balancer pools: %s", err)
@@ -469,10 +476,14 @@ class CloudflareApiClient:
             _LOGGER.debug("Failed to fetch zone rulesets: %s", err)
             return []
 
-    async def get_zone_ruleset_rules(self, zone_id: str, ruleset_id: str) -> list[dict[str, Any]]:
+    async def get_zone_ruleset_rules(
+        self, zone_id: str, ruleset_id: str
+    ) -> list[dict[str, Any]]:
         """Get rules in a specific ruleset for a zone."""
         try:
-            result = await self._request("GET", f"zones/{zone_id}/rulesets/{ruleset_id}")
+            result = await self._request(
+                "GET", f"zones/{zone_id}/rulesets/{ruleset_id}"
+            )
             return result.get("result", {}).get("rules", [])
         except Exception as err:
             _LOGGER.debug("Failed to fetch ruleset rules: %s", err)
@@ -492,7 +503,9 @@ class CloudflareApiClient:
     async def get_registrar_domains(self, account_id: str) -> list[dict[str, Any]]:
         """Get domains registered via Cloudflare Registrar."""
         try:
-            result = await self._request("GET", f"accounts/{account_id}/registrar/registrations")
+            result = await self._request(
+                "GET", f"accounts/{account_id}/registrar/registrations"
+            )
             return result.get("result", [])
         except Exception as err:
             _LOGGER.debug("Failed to fetch registrar domains: %s", err)
@@ -501,7 +514,9 @@ class CloudflareApiClient:
     async def get_images_stats(self, account_id: str) -> dict[str, Any]:
         """Get Cloudflare Images usage statistics."""
         try:
-            result = await self._request("GET", f"accounts/{account_id}/images/v1/stats")
+            result = await self._request(
+                "GET", f"accounts/{account_id}/images/v1/stats"
+            )
             return result.get("result", {})
         except Exception as err:
             _LOGGER.debug("Failed to fetch Cloudflare Images stats: %s", err)

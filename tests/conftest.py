@@ -176,7 +176,6 @@ def mock_api_client() -> Generator[AsyncMock]:
         yield client
 
 
-
 @pytest.fixture
 def hass() -> MagicMock:
     """Mock HomeAssistant."""

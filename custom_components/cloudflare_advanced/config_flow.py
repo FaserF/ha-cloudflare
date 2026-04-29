@@ -204,6 +204,15 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
                 ),
                 errors=errors,
             )
+        except Exception as ex:
+            _LOGGER.error("Exception in async_step_select_zones: %s", ex, exc_info=True)
+            errors["base"] = "cannot_connect"
+            return self.async_show_form(
+                step_id="token",
+                data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
+                errors=errors,
+            )
+
     async def async_step_select_records(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
@@ -255,7 +264,9 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
                 errors=errors,
             )
         except Exception as ex:
-            _LOGGER.error("Exception in async_step_select_records: %s", ex, exc_info=True)
+            _LOGGER.error(
+                "Exception in async_step_select_records: %s", ex, exc_info=True
+            )
             errors["base"] = "cannot_connect"
             return self._async_create_entry()
 
@@ -276,7 +287,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  #
 
         if records:
             data[CONF_RECORDS] = records
-        
+
         account_name = "Cloudflare Advanced"
         if self._zones:
             acc_name = self._zones[0].get("account", {}).get("name")
@@ -341,10 +352,9 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
             self._options.update(user_input)
             return self.async_create_entry(title="", data=self._options)
 
-        session = async_get_clientsession(self.hass)
         coordinator = self.hass.data[DOMAIN][self.config_entry.entry_id]
         client = coordinator.client
-        
+
         selected_zone_ids = self.config_entry.data.get(CONF_ZONES, [])
         current_records = self.config_entry.options.get(
             CONF_RECORDS, self.config_entry.data.get(CONF_RECORDS, [])

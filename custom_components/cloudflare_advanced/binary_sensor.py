@@ -296,4 +296,3 @@ class CloudflareLoadBalancerPoolBinarySensor(
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
-

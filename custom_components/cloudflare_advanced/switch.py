@@ -13,6 +13,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import CloudflareAdvancedCoordinator
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -144,7 +147,9 @@ async def async_setup_entry(
 
         for email_rule in zone_data.get("email_rules", []):
             entities.append(
-                CloudflareEmailRoutingSwitch(coordinator, zone_id, zone_name, email_rule)
+                CloudflareEmailRoutingSwitch(
+                    coordinator, zone_id, zone_name, email_rule
+                )
             )
 
         for waf_rule in zone_data.get("waf_rules", []):
@@ -187,6 +192,10 @@ class CloudflareSettingSwitch(
         self._attr_unique_id = f"{zone_id}_{setting_id}_switch"
         self._attr_translation_key = setting_id
         self._attr_has_entity_name = True
+
+        # Disable most settings by default, except the most popular ones
+        if setting_id not in ["development_mode", "always_use_https"]:
+            self._attr_entity_registry_enabled_default = False
 
     @property
     def is_on(self) -> bool:
@@ -330,9 +339,7 @@ class CloudflareEmailRoutingSwitch(
         self._attr_has_entity_name = True
 
         matchers = rule.get("matchers", [])
-        alias = (
-            matchers[0].get("value") if matchers else "Email Rule"
-        )
+        alias = matchers[0].get("value") if matchers else "Email Rule"
         self._attr_translation_placeholders = {"alias": alias}
 
     @property
@@ -352,7 +359,7 @@ class CloudflareEmailRoutingSwitch(
             "actions": self._rule.get("actions", []),
             "matchers": self._rule.get("matchers", []),
             "enabled": True,
-            "name": self._rule.get("name", "")
+            "name": self._rule.get("name", ""),
         }
         await self.coordinator.client.update_email_routing_rule(
             self._zone_id, self._rule_id, payload
@@ -366,7 +373,7 @@ class CloudflareEmailRoutingSwitch(
             "actions": self._rule.get("actions", []),
             "matchers": self._rule.get("matchers", []),
             "enabled": False,
-            "name": self._rule.get("name", "")
+            "name": self._rule.get("name", ""),
         }
         await self.coordinator.client.update_email_routing_rule(
             self._zone_id, self._rule_id, payload
@@ -410,7 +417,7 @@ class CloudflareGatewayRuleSwitch(
         self._attr_unique_id = f"gateway_rule_{self._rule_id}"
         self._attr_translation_key = "gateway_rule"
         self._attr_has_entity_name = True
-        
+
         rule_name = rule.get("name", "Gateway Rule")
         self._attr_translation_placeholders = {"rule_name": rule_name}
 
@@ -428,8 +435,10 @@ class CloudflareGatewayRuleSwitch(
         zones = self.coordinator.data.get("zones", {})
         account_id = None
         if zones:
-            account_id = list(zones.values())[0].get("info", {}).get("account", {}).get("id")
-        
+            account_id = (
+                list(zones.values())[0].get("info", {}).get("account", {}).get("id")
+            )
+
         if not account_id:
             try:
                 accounts = await self.coordinator.client.get_accounts()
@@ -637,6 +646,8 @@ class CloudflareRegistrarAutoRenewSwitch(
 ):
     """Switch for a Cloudflare Registrar Domain Auto-Renew status."""
 
+    _attr_entity_registry_enabled_default = False
+
     def __init__(
         self,
         coordinator: CloudflareAdvancedCoordinator,
@@ -701,5 +712,3 @@ class CloudflareRegistrarAutoRenewSwitch(
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
-
-
