@@ -2,27 +2,27 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-import logging
 import asyncio
+import logging
+from datetime import timedelta
 from typing import Any
 
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from .api import CloudflareApiClient
 from .const import (
+    CONF_API_KEY,
     CONF_API_TOKEN,
     CONF_EMAIL,
-    CONF_API_KEY,
-    CONF_ZONES,
-    CONF_UPDATE_INTERVAL,
     CONF_ENABLE_DDNS,
     CONF_RECORDS,
+    CONF_UPDATE_INTERVAL,
+    CONF_ZONES,
     DOMAIN,
 )
-from .api import CloudflareApiClient
 
 _LOGGER = logging.getLogger(__name__)
 

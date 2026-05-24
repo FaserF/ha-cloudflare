@@ -7,10 +7,10 @@ from typing import Any
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
+from datetime import datetime
 from .const import DOMAIN
 from .coordinator import CloudflareAdvancedCoordinator
 
@@ -50,9 +50,20 @@ async def async_setup_entry(
     for widget in coordinator.data.get("turnstile_widgets", []):
         entities.append(CloudflareTurnstileSensor(coordinator, widget))
 
-    # Add Cloudflare Pages Sensors
+    # Add Cloudflare Pages Sensors (one device per project, multiple sensors)
     for project in coordinator.data.get("pages_projects", []):
-        entities.append(CloudflarePagesSensor(coordinator, project))
+        project_name = project["name"]
+        entities.extend([
+            CloudflarePagesStatusSensor(coordinator, project_name),
+            CloudflarePagesLastDeployedSensor(coordinator, project_name),
+            CloudflarePagesBranchSensor(coordinator, project_name),
+            CloudflarePagesUrlSensor(coordinator, project_name),
+            CloudflarePagesDeploymentStageSensor(coordinator, project_name),
+            CloudflarePagesEnvironmentSensor(coordinator, project_name),
+            CloudflarePagesTriggerTypeSensor(coordinator, project_name),
+            CloudflarePagesCommitHashSensor(coordinator, project_name),
+            CloudflarePagesCommitMessageSensor(coordinator, project_name),
+        ])
 
     # Add Registrar Domain Sensors
     for domain in coordinator.data.get("registrar_domains", []):
@@ -279,66 +290,254 @@ class CloudflareFirewallEventSensor(
         )
 
 
-class CloudflarePagesSensor(
+class CloudflarePagesBaseSensor(
     CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
 ):
-    """Sensor for Cloudflare Pages deployment status."""
+    """Base sensor for a Cloudflare Pages project sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
         coordinator: CloudflareAdvancedCoordinator,
-        project: dict[str, Any],
+        project_name: str,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._project_name = project["name"]
-        self._attr_unique_id = f"pages_{self._project_name}_deployment"
-        self._attr_translation_key = "pages_deployment"
-        self._attr_has_entity_name = True
-        self._attr_translation_placeholders = {"project_name": self._project_name}
+        self._project_name = project_name
 
-    @property
-    def native_value(self) -> Any:
-        """Return deployment status."""
-        for p in self.coordinator.data.get("pages_projects", []):
-            if p["name"] == self._project_name:
-                latest_deployment = p.get("latest_deployment", {})
-                if latest_deployment:
-                    return latest_deployment.get("status", "unknown")
-                return "No deployments"
-        return "Unknown"
+    def _get_project(self) -> dict[str, Any] | None:
+        if not self.coordinator.data:
+            return None
+        for project in self.coordinator.data.get("pages_projects", []):
+            if project["name"] == self._project_name:
+                return project
+        return None
 
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return project details."""
-        for p in self.coordinator.data.get("pages_projects", []):
-            if p["name"] == self._project_name:
-                return {
-                    "subdomain": p.get("subdomain"),
-                    "production_branch": p.get("production_branch"),
-                    "updated_on": p.get("updated_on"),
-                }
-        return {}
+    def _get_latest_deployment(self) -> dict[str, Any] | None:
+        project = self._get_project()
+        if project:
+            return project.get("latest_deployment") or None
+        return None
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Device info for Account level."""
-        config_url = "https://dash.cloudflare.com"
+    def _get_account_id(self) -> str | None:
         zones = self.coordinator.data.get("zones", {})
         if zones:
             first_zone = list(zones.values())[0]
-            account_id = first_zone.get("info", {}).get("account", {}).get("id")
-            if account_id:
-                config_url = f"https://dash.cloudflare.com/{account_id}"
+            return first_zone.get("info", {}).get("account", {}).get("id")
+        return None
 
+    @property
+    def available(self) -> bool:
+        """Return False when project no longer exists in coordinator data."""
+        return super().available and self._get_project() is not None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for this Pages project."""
+        account_id = self._get_account_id()
+        config_url = (
+            f"https://dash.cloudflare.com/{account_id}/pages/view/{self._project_name}"
+            if account_id
+            else "https://dash.cloudflare.com"
+        )
         return DeviceInfo(
-            identifiers={(DOMAIN, "cloudflare_account_level")},
-            name="Cloudflare Account Resources",
+            identifiers={(DOMAIN, f"pages_{self._project_name}")},
+            name=self._project_name,
+            model="Cloudflare Pages",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )
+
+
+class CloudflarePagesStatusSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages deployment status."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_status"
+        self._attr_translation_key = "pages_status"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return deployment status from latest stage."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        latest_stage = deployment.get("latest_stage", {})
+        return latest_stage.get("status") if latest_stage else None
+
+
+class CloudflarePagesLastDeployedSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages last deployment timestamp."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_last_deployed"
+        self._attr_translation_key = "pages_last_deployed"
+
+    @property
+    def native_value(self) -> Any | None:
+        """Return when the latest deployment was created."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        created_at = deployment.get("created_on")
+        if created_at:
+            try:
+                return datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except ValueError:
+                pass
+        return None
+
+
+class CloudflarePagesBranchSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages deployment branch."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_branch"
+        self._attr_translation_key = "pages_branch"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return branch that triggered latest deployment."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        return deployment.get("deployment_trigger", {}).get("metadata", {}).get("branch")
+
+
+class CloudflarePagesUrlSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages deployment URL."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_url"
+        self._attr_translation_key = "pages_url"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return URL of latest deployment."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        return deployment.get("url")
+
+
+class CloudflarePagesDeploymentStageSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages current deployment stage."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_stage"
+        self._attr_translation_key = "pages_stage"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return current stage name of latest deployment."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        latest_stage = deployment.get("latest_stage", {})
+        return latest_stage.get("name") if latest_stage else None
+
+
+class CloudflarePagesEnvironmentSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages deployment environment."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_environment"
+        self._attr_translation_key = "pages_environment"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return environment of latest deployment (production/preview)."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        return deployment.get("environment")
+
+
+class CloudflarePagesTriggerTypeSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages deployment trigger type."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_trigger_type"
+        self._attr_translation_key = "pages_trigger_type"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return trigger type of latest deployment."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        return deployment.get("deployment_trigger", {}).get("type")
+
+
+class CloudflarePagesCommitHashSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages deployment commit hash."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_commit_hash"
+        self._attr_translation_key = "pages_commit_hash"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return commit hash of latest deployment."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        return deployment.get("deployment_trigger", {}).get("metadata", {}).get("commit_hash")
+
+
+class CloudflarePagesCommitMessageSensor(CloudflarePagesBaseSensor):
+    """Sensor for Pages deployment commit message."""
+
+    _attr_entity_registry_enabled_default = True
+
+    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, project_name)
+        self._attr_unique_id = f"pages_{project_name}_commit_message"
+        self._attr_translation_key = "pages_commit_message"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return commit message of latest deployment."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return None
+        return deployment.get("deployment_trigger", {}).get("metadata", {}).get("commit_message")
 
 
 class CloudflareCertificateSensor(

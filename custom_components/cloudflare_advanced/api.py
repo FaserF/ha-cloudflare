@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import logging
-import aiohttp
-from typing import Any
 from datetime import datetime, timedelta
+from typing import Any
+
+import aiohttp
 
 from .const import API_URL, GRAPHQL_URL
 
@@ -77,11 +78,11 @@ class CloudflareApiClient:
 
                 try:
                     result = await response.json()
-                except Exception:
+                except Exception as exc:
                     response.raise_for_status()
                     raise Exception(
                         f"HTTP Error {response.status} with non-JSON response"
-                    )
+                    ) from exc
 
                 if not result.get("success", False):
                     errors = result.get("errors", [])
@@ -563,7 +564,7 @@ class CloudflareApiClient:
     async def get_registrar_domains(self, account_id: str) -> list[dict[str, Any]]:
         """Get domains registered via Cloudflare Registrar."""
         result = await self._request(
-            "GET", f"accounts/{account_id}/registrar/registrations"
+            "GET", f"accounts/{account_id}/registrar/domains"
         )
         return result.get("result", [])
 
