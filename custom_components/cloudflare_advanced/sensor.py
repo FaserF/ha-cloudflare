@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
@@ -10,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from datetime import datetime
+
 from .const import DOMAIN
 from .coordinator import CloudflareAdvancedCoordinator
 
@@ -62,7 +63,6 @@ async def async_setup_entry(
             CloudflarePagesEnvironmentSensor(coordinator, project_name),
             CloudflarePagesTriggerTypeSensor(coordinator, project_name),
             CloudflarePagesCommitHashSensor(coordinator, project_name),
-            CloudflarePagesCommitMessageSensor(coordinator, project_name),
         ])
 
     # Add Registrar Domain Sensors
@@ -432,11 +432,22 @@ class CloudflarePagesUrlSensor(CloudflarePagesBaseSensor):
 
     @property
     def native_value(self) -> str | None:
-        """Return URL of latest deployment."""
+        """Return deployment subdomain (first segment of pages.dev URL)."""
         deployment = self._get_latest_deployment()
         if deployment is None:
             return None
-        return deployment.get("url")
+        url = deployment.get("url", "")
+        host = url.removeprefix("https://").removeprefix("http://")
+        return host.split(".")[0] if host else None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return full deployment URL."""
+        deployment = self._get_latest_deployment()
+        if deployment is None:
+            return {}
+        url = deployment.get("url")
+        return {"url": url} if url else {}
 
 
 class CloudflarePagesDeploymentStageSensor(CloudflarePagesBaseSensor):
@@ -513,31 +524,31 @@ class CloudflarePagesCommitHashSensor(CloudflarePagesBaseSensor):
 
     @property
     def native_value(self) -> str | None:
-        """Return commit hash of latest deployment."""
+        """Return short (7-char) commit hash of latest deployment."""
         deployment = self._get_latest_deployment()
         if deployment is None:
             return None
-        return deployment.get("deployment_trigger", {}).get("metadata", {}).get("commit_hash")
-
-
-class CloudflarePagesCommitMessageSensor(CloudflarePagesBaseSensor):
-    """Sensor for Pages deployment commit message."""
-
-    _attr_entity_registry_enabled_default = True
-
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, project_name)
-        self._attr_unique_id = f"pages_{project_name}_commit_message"
-        self._attr_translation_key = "pages_commit_message"
+        full_hash = deployment.get("deployment_trigger", {}).get("metadata", {}).get("commit_hash")
+        return full_hash[:7] if full_hash else None
 
     @property
-    def native_value(self) -> str | None:
-        """Return commit message of latest deployment."""
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return full commit metadata."""
         deployment = self._get_latest_deployment()
         if deployment is None:
-            return None
-        return deployment.get("deployment_trigger", {}).get("metadata", {}).get("commit_message")
+            return {}
+        metadata = deployment.get("deployment_trigger", {}).get("metadata", {})
+        attrs: dict[str, Any] = {
+            "full_hash": metadata.get("commit_hash"),
+            "commit_message": metadata.get("commit_message"),
+            "branch": metadata.get("branch"),
+            "repo_name": metadata.get("repo_name"),
+            "repo_owner": metadata.get("repo_owner"),
+            "deployment_id": deployment.get("id"),
+        }
+        if pr_id := metadata.get("pr_id"):
+            attrs["pr_id"] = pr_id
+        return {k: v for k, v in attrs.items() if v is not None}
 
 
 class CloudflareCertificateSensor(
@@ -564,7 +575,6 @@ class CloudflareCertificateSensor(
     @property
     def native_value(self) -> Any | None:
         """Return certificate expiration date."""
-        from datetime import datetime
 
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
         cert_packs = zone_data.get("cert_packs", [])
@@ -625,7 +635,6 @@ class CloudflareRegistrarDomainSensor(
     @property
     def native_value(self) -> Any | None:
         """Return the expiration date."""
-        from datetime import datetime
 
         registrar_domains = self.coordinator.data.get("registrar_domains", [])
         for d in registrar_domains:
