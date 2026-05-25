@@ -478,7 +478,7 @@ class CloudflareApiClient:
         """Get SSL certificate packs for a specific zone."""
         try:
             result = await self._request(
-                "GET", f"zones/{zone_id}/ssl/certificate_packs"
+                "GET", f"zones/{zone_id}/ssl/certificate_packs?status=all"
             )
             return result.get("result", [])
         except Exception as err:

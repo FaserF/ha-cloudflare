@@ -108,6 +108,14 @@ class CloudflareAnalyticsSensor(
         if sensor_type in ["threats", "uniques"]:
             self._attr_entity_registry_enabled_default = False
 
+        icons = {
+            "requests": "mdi:chart-bar",
+            "bytes": "mdi:download-network",
+            "threats": "mdi:shield-alert",
+            "uniques": "mdi:account-multiple",
+        }
+        self._attr_icon = icons.get(sensor_type)
+
         if sensor_type == "bytes":
             self._attr_native_unit_of_measurement = "MB"
         elif sensor_type in ["requests", "threats", "uniques"]:
@@ -150,6 +158,7 @@ class CloudflareWorkerSensor(
     """Sensor for Cloudflare Worker Deployment status."""
 
     _attr_entity_registry_enabled_default = False
+    _attr_icon = "mdi:cog-transfer"
 
     def __init__(
         self,
@@ -197,6 +206,7 @@ class CloudflareTurnstileSensor(
     """Sensor for Cloudflare Turnstile widgets."""
 
     _attr_entity_registry_enabled_default = False
+    _attr_icon = "mdi:shield-check"
 
     def __init__(
         self,
@@ -233,6 +243,8 @@ class CloudflareFirewallEventSensor(
     CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
 ):
     """Sensor for Cloudflare Firewall/Security events."""
+
+    _attr_icon = "mdi:shield-lock"
 
     def __init__(
         self,
@@ -355,6 +367,7 @@ class CloudflarePagesStatusSensor(CloudflarePagesBaseSensor):
     """Sensor for Pages deployment status."""
 
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:cloud-check"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -377,6 +390,7 @@ class CloudflarePagesLastDeployedSensor(CloudflarePagesBaseSensor):
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:clock-check"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -403,6 +417,7 @@ class CloudflarePagesBranchSensor(CloudflarePagesBaseSensor):
     """Sensor for Pages deployment branch."""
 
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:source-branch"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -423,6 +438,7 @@ class CloudflarePagesUrlSensor(CloudflarePagesBaseSensor):
     """Sensor for Pages deployment URL."""
 
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:link"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -454,6 +470,7 @@ class CloudflarePagesDeploymentStageSensor(CloudflarePagesBaseSensor):
     """Sensor for Pages current deployment stage."""
 
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:layers-outline"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -475,6 +492,7 @@ class CloudflarePagesEnvironmentSensor(CloudflarePagesBaseSensor):
     """Sensor for Pages deployment environment."""
 
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:server"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -495,6 +513,7 @@ class CloudflarePagesTriggerTypeSensor(CloudflarePagesBaseSensor):
     """Sensor for Pages deployment trigger type."""
 
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:lightning-bolt"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -515,6 +534,7 @@ class CloudflarePagesCommitHashSensor(CloudflarePagesBaseSensor):
     """Sensor for Pages deployment commit hash."""
 
     _attr_entity_registry_enabled_default = True
+    _attr_icon = "mdi:source-commit"
 
     def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
         """Initialize the sensor."""
@@ -557,6 +577,7 @@ class CloudflareCertificateSensor(
     """Sensor for Cloudflare Edge Certificate Expiration."""
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_icon = "mdi:certificate"
 
     def __init__(
         self,
@@ -574,22 +595,24 @@ class CloudflareCertificateSensor(
 
     @property
     def native_value(self) -> Any | None:
-        """Return certificate expiration date."""
-
+        """Return earliest certificate expiration date across all packs."""
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
         cert_packs = zone_data.get("cert_packs", [])
 
         earliest_expiry = None
         for pack in cert_packs:
-            for cert in pack.get("certificates", []):
-                expires_on = cert.get("expires_on")
-                if expires_on:
-                    try:
-                        dt = datetime.fromisoformat(expires_on.replace("Z", "+00:00"))
-                        if earliest_expiry is None or dt < earliest_expiry:
-                            earliest_expiry = dt
-                    except ValueError:
-                        continue
+            candidates = [cert.get("expires_on") for cert in pack.get("certificates", [])]
+            if not candidates:
+                candidates = [pack.get("expires_on")]
+            for expires_on in candidates:
+                if not expires_on:
+                    continue
+                try:
+                    dt = datetime.fromisoformat(expires_on.replace("Z", "+00:00"))
+                    if earliest_expiry is None or dt < earliest_expiry:
+                        earliest_expiry = dt
+                except ValueError:
+                    continue
 
         return earliest_expiry
 
@@ -618,6 +641,7 @@ class CloudflareRegistrarDomainSensor(
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_registry_enabled_default = False
+    _attr_icon = "mdi:domain"
 
     def __init__(
         self,
@@ -686,6 +710,7 @@ class CloudflareImagesSensor(
     """Sensor for Cloudflare Images stats."""
 
     _attr_entity_registry_enabled_default = False
+    _attr_icon = "mdi:image-multiple"
 
     def __init__(
         self,
