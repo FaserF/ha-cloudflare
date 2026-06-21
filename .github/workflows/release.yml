@@ -197,7 +197,7 @@ jobs:
 
       - name: 📦 Zip Component
         run: |
-          zip -r cloudflare.zip custom_components/cloudflare_advanced
+          zip -r cloudflare_advanced.zip custom_components/cloudflare_advanced
 
       - name: Download Release Body Artifact
         uses: actions/download-artifact@v8
@@ -232,7 +232,7 @@ jobs:
               -F prerelease=$( [ "$IS_PRERELEASE" = "true" ] && echo "true" || echo "false" )
               
             # Upload the assets to the published release
-            gh release upload "$TAG" cloudflare.zip --clobber
+            gh release upload "$TAG" cloudflare_advanced.zip --clobber
           else
             # Create a brand new release if no draft exists
             gh release create "$TAG" \
@@ -240,7 +240,7 @@ jobs:
               --title "Release $VERSION" \
               --notes-file "release_body.md" \
               $prerelease_arg \
-              cloudflare.zip
+              cloudflare_advanced.zip
           fi
  
       - name: Post-Release Dev Bump
@@ -249,6 +249,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git reset --hard HEAD
           git pull --rebase origin ${{ github.ref_name }}
+          git fetch --tags
           NEW_DEV=$(python .github/scripts/version_manager.py bump --type dev --level patch)
           if ! git diff --quiet; then
             git commit -am "chore(dev): bump to $NEW_DEV [skip ci]"
