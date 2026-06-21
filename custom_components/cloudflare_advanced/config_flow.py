@@ -4,22 +4,22 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-import voluptuous as vol
 
+import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import selector
 
 from .api import CloudflareApiClient
-from homeassistant.core import callback
 from .const import (
     CONF_API_KEY,
     CONF_API_TOKEN,
     CONF_EMAIL,
-    CONF_ZONES,
-    CONF_UPDATE_INTERVAL,
     CONF_ENABLE_DDNS,
     CONF_RECORDS,
+    CONF_UPDATE_INTERVAL,
+    CONF_ZONES,
     DOMAIN,
 )
 
@@ -64,7 +64,7 @@ def get_permissions_summary(probe_results: dict[str, bool]) -> str:
     return header + "\n".join(table_rows)
 
 
-class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Cloudflare Advanced."""
 
     VERSION = 1
