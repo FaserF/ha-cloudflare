@@ -1,14 +1,13 @@
 name: Bug Report
-description: Create a report to help us improve the OpenWrt integration
+description: Create a report to help us improve the Cloudflare Advanced integration
 title: '[Bug]: '
 labels:
 - bug
 body:
 - type: markdown
   attributes:
-    value: 'Thanks for taking the time to fill out this bug report!
-
-      '
+    value: |
+      Thanks for taking the time to fill out this bug report!
 - type: input
   id: version
   attributes:
@@ -18,22 +17,11 @@ body:
   validations:
     required: true
 - type: input
-  id: openwrt_version
+  id: ha_version
   attributes:
-    label: OpenWrt Version
-    description: Which version of OpenWrt is running on your router?
-    placeholder: 25.12.0
-  validations:
-    required: true
-- type: dropdown
-  id: auth_method
-  attributes:
-    label: Connection Method
-    description: How is the integration connecting to your router?
-    options:
-    - ubus (HTTP/HTTPS)
-    - LuCI RPC
-    - SSH
+    label: Home Assistant Version
+    description: Which version of Home Assistant Core has the issue?
+    placeholder: 2026.6.X
   validations:
     required: true
 - type: textarea
@@ -47,8 +35,7 @@ body:
   id: logs
   attributes:
     label: Relevant log output
-    description: Please copy and paste any relevant log output. Use the integration's
-      debug logging if possible.
+    description: Please copy and paste any relevant log output. Use the integration's debug logging if possible.
     render: shell
 assignees:
 - FaserF
