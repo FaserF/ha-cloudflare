@@ -1,4 +1,4 @@
-# Add "enhancement" label to PRs modifying feat/* branches or having feature in title
+# Add "enhancement" label to PRs modifying feat/* branches
 enhancement:
   - head-branch: ['^feat/', '^feature/']
 
@@ -9,7 +9,7 @@ bug:
 # Add "documentation" label
 documentation:
   - changed-files:
-    - any-glob-to-any-file: ['**/*.md', 'docs/**']
+    - any-glob-to-any-file: ['**/*.md']
 
 # Add "ci" label
 ci:
