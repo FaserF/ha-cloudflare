@@ -12,7 +12,7 @@ body:
 
         Before submitting, please check:
         - 📋 [Existing issues](https://github.com/FaserF/ha-cloudflare/issues)
-        - 📖 [Documentation](https://github.com/FaserF/ha-cloudflare/blob/master/README.md)
+        - 📖 [Documentation Site](https://faserf.github.io/ha-cloudflare/)
         - 🔧 [Integration page](https://my.home-assistant.io/redirect/integration/?domain=cloudflare_advanced) in Home Assistant
 
   - type: input

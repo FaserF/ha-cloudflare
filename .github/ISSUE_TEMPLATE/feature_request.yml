@@ -12,7 +12,7 @@ body:
 
         Before submitting, please check:
         - 📋 [Existing feature requests](https://github.com/FaserF/ha-cloudflare/issues?q=is%3Aissue+label%3Aenhancement)
-        - 📖 [Documentation](https://github.com/FaserF/ha-cloudflare/blob/master/README.md)
+        - 📖 [Documentation Site](https://faserf.github.io/ha-cloudflare/)
 
   - type: textarea
     id: description

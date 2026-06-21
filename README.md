@@ -3,6 +3,7 @@
 [![GitHub Release](https://img.shields.io/github/release/FaserF/ha-cloudflare.svg?style=flat-square)](https://github.com/FaserF/ha-cloudflare/releases)
 [![License](https://img.shields.io/github/license/FaserF/ha-cloudflare.svg?style=flat-square)](LICENSE)
 [![hacs](https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square)](https://hacs.xyz)
+[![Documentation](https://img.shields.io/badge/docs-Material--MkDocs-blue.svg?style=flat-square)](https://faserf.github.io/ha-cloudflare/)
 [![Add to Home Assistant](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=cloudflare_advanced)
 [![CI Orchestrator](https://github.com/FaserF/ha-cloudflare/actions/workflows/ci-orchestrator.yml/badge.svg)](https://github.com/FaserF/ha-cloudflare/actions/workflows/ci-orchestrator.yml)
 
@@ -12,9 +13,9 @@ A secure, production-ready Home Assistant integration for Cloudflare. Monitor zo
 
 | | | | |
 | :--- | :--- | :--- | :--- |
-| [✨ Features](#-features) | [📦 Installation](#-installation) | [⚙️ Configuration](#️-configuration) | [🛡️ Security](#-security) |
-| [🧱 Services](#-services) | [📖 Automations](#-automation-examples) | [❓ FAQ](#-troubleshooting--faq) | [🧑‍💻 Development](#-development) |
-| [💖 Credits](#-credits--acknowledgements) | [📄 License](#-license) | | |
+| [📖 Documentation Site](https://faserf.github.io/ha-cloudflare/) | [✨ Features](#-features) | [📦 Installation](#-installation) | [⚙️ Configuration](#️-configuration) |
+| [🛡️ Security](#-security) | [🧱 Services](#-services) | [📖 Automations](#-automation-examples) | [❓ FAQ](#-troubleshooting--faq) |
+| [🧑‍💻 Development](#-development) | [💖 Credits](#-credits--acknowledgements) | [📄 License](#-license) | |
 
 ### Why use this integration?
 While generic DNS updates only provide simple IP changes, this integration leverages Cloudflare APIs (REST & GraphQL) to offer deep administrative control. Manage multiple zones, workers, turnstile widgets, access policies, and Zero Trust tunnels in one cohesive dashboard without accessing complex terminals.
