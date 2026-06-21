@@ -1,5 +1,5 @@
 name: Report an issue
-description: Report an issue with the cloudflare-advanced Integration
+description: Report an issue with the cloudflare Integration
 title: "[Bug]: "
 labels: ["bug"]
 assignees:
