@@ -8,48 +8,8 @@ permissions:
   issues: write
 
 jobs:
-  auto-label:
-    name: Label Issue
-    runs-on: ubuntu-latest
-    steps:
-      - name: Label Issues
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const issue = context.payload.issue;
-            const title = issue.title.toLowerCase();
-            const body = (issue.body || "").toLowerCase();
-            const labels = [];
-            
-            if (title.includes("bug") || body.includes("bug") || body.includes("fehler")) {
-              labels.push("bug");
-            }
-            if (title.includes("feature") || title.includes("request") || body.includes("wunsch")) {
-              labels.push("enhancement");
-            }
-            if (title.includes("documentation") || title.includes("docs") || body.includes("doku")) {
-              labels.push("documentation");
-            }
-            if (title.includes("dns") || body.includes("dns")) {
-              labels.push("dns");
-            }
-            if (title.includes("tunnel") || body.includes("tunnel")) {
-              labels.push("tunnel");
-            }
-            
-            if (labels.length > 0) {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                labels: labels
-              });
-            }
-
   auto-comment:
-    name: Comment & Close
     runs-on: ubuntu-latest
-    needs: auto-label
     steps:
       - name: Comment on new issue
         uses: actions/github-script@v9
@@ -58,6 +18,14 @@ jobs:
             const issue = context.payload.issue;
             const labels = issue.labels.map(l => l.name);
             let body = "Hi @" + issue.user.login + ", thanks for opening this issue! 👋\n\n";
+
+            const issueBody = issue.body || "";
+            if (issueBody.includes("FaserF Server (dbf.fabiseitz.de)")) {
+              body += "⚠️ **FaserF Server Note:**\nThe DBF FaserF Server is privately hosted by @FaserF and 100% uptime cannot be guaranteed. If the server is currently offline or unreachable, I will investigate the issue, but it is strongly recommended to self-host a DBF server or use my Home Assistant App (Add-On) for self-hosting.\n\n";
+            } else if (issueBody.includes("Official Server (dbf.finalrewind.org)")) {
+              body += "⚠️ **Official Server Note:**\nIf the official server is currently offline or unreachable, please refer to this GitHub issue for more information: https://github.com/FaserF/ha-cloudflare_advanced/issues/122. It is strongly recommended to self-host a DBF server or use my Home Assistant App (Add-On) for self-hosting.\n\n";
+            }
+
             const maintainerNote = "\n\n---\n*Please note: I maintain this integration in my free time as a hobby project. I'll do my best to look into this soon, but feedback speed may vary depending on my availability.*";
 
             if (labels.includes('bug')) {
@@ -65,7 +33,7 @@ jobs:
               body += "To help solve this faster, please check the following:\n";
               body += "- [ ] Is your Home Assistant version up to date?\n";
               body += "- [ ] Are you using the latest version of this integration?\n";
-              body += "- [ ] Have you checked the documentation for similar issues or configuration tips?\n";
+              body += "- [ ] Have you checked the [documentation](https://faserf.github.io/ha-cloudflare_advanced/) for similar issues or configuration tips?\n";
               body += "- [ ] If applicable: Did you enable debug logging (`custom_components.cloudflare_advanced: debug`) and provide relevant logs?\n\n";
               body += "I will investigate this as soon as possible!";
               body += maintainerNote;
@@ -84,3 +52,4 @@ jobs:
               repo: context.repo.repo,
               body: body
             });
+

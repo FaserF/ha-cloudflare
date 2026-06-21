@@ -1,6 +1,6 @@
 {
-  "name": "Cloudflare Advanced",
+  "name": "Cloudflare",
   "render_readme": true,
   "zip_release": true,
-  "filename": "cloudflare_advanced.zip"
+  "filename": "cloudflare.zip"
 }
