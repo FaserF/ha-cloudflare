@@ -54,16 +54,18 @@ async def async_setup_entry(
     # Add Cloudflare Pages Sensors (one device per project, multiple sensors)
     for project in coordinator.data.get("pages_projects", []):
         project_name = project["name"]
-        entities.extend([
-            CloudflarePagesStatusSensor(coordinator, project_name),
-            CloudflarePagesLastDeployedSensor(coordinator, project_name),
-            CloudflarePagesBranchSensor(coordinator, project_name),
-            CloudflarePagesUrlSensor(coordinator, project_name),
-            CloudflarePagesDeploymentStageSensor(coordinator, project_name),
-            CloudflarePagesEnvironmentSensor(coordinator, project_name),
-            CloudflarePagesTriggerTypeSensor(coordinator, project_name),
-            CloudflarePagesCommitHashSensor(coordinator, project_name),
-        ])
+        entities.extend(
+            [
+                CloudflarePagesStatusSensor(coordinator, project_name),
+                CloudflarePagesLastDeployedSensor(coordinator, project_name),
+                CloudflarePagesBranchSensor(coordinator, project_name),
+                CloudflarePagesUrlSensor(coordinator, project_name),
+                CloudflarePagesDeploymentStageSensor(coordinator, project_name),
+                CloudflarePagesEnvironmentSensor(coordinator, project_name),
+                CloudflarePagesTriggerTypeSensor(coordinator, project_name),
+                CloudflarePagesCommitHashSensor(coordinator, project_name),
+            ]
+        )
 
     # Add Registrar Domain Sensors
     for domain in coordinator.data.get("registrar_domains", []):
@@ -369,7 +371,9 @@ class CloudflarePagesStatusSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:cloud-check"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_status"
@@ -392,7 +396,9 @@ class CloudflarePagesLastDeployedSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:clock-check"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_last_deployed"
@@ -419,7 +425,9 @@ class CloudflarePagesBranchSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:source-branch"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_branch"
@@ -431,7 +439,9 @@ class CloudflarePagesBranchSensor(CloudflarePagesBaseSensor):
         deployment = self._get_latest_deployment()
         if deployment is None:
             return None
-        return deployment.get("deployment_trigger", {}).get("metadata", {}).get("branch")
+        return (
+            deployment.get("deployment_trigger", {}).get("metadata", {}).get("branch")
+        )
 
 
 class CloudflarePagesUrlSensor(CloudflarePagesBaseSensor):
@@ -440,7 +450,9 @@ class CloudflarePagesUrlSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:link"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_url"
@@ -472,7 +484,9 @@ class CloudflarePagesDeploymentStageSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:layers-outline"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_stage"
@@ -494,7 +508,9 @@ class CloudflarePagesEnvironmentSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:server"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_environment"
@@ -515,7 +531,9 @@ class CloudflarePagesTriggerTypeSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:lightning-bolt"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_trigger_type"
@@ -536,7 +554,9 @@ class CloudflarePagesCommitHashSensor(CloudflarePagesBaseSensor):
     _attr_entity_registry_enabled_default = True
     _attr_icon = "mdi:source-commit"
 
-    def __init__(self, coordinator: CloudflareAdvancedCoordinator, project_name: str) -> None:
+    def __init__(
+        self, coordinator: CloudflareAdvancedCoordinator, project_name: str
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, project_name)
         self._attr_unique_id = f"pages_{project_name}_commit_hash"
@@ -548,7 +568,11 @@ class CloudflarePagesCommitHashSensor(CloudflarePagesBaseSensor):
         deployment = self._get_latest_deployment()
         if deployment is None:
             return None
-        full_hash = deployment.get("deployment_trigger", {}).get("metadata", {}).get("commit_hash")
+        full_hash = (
+            deployment.get("deployment_trigger", {})
+            .get("metadata", {})
+            .get("commit_hash")
+        )
         return full_hash[:7] if full_hash else None
 
     @property
@@ -601,7 +625,9 @@ class CloudflareCertificateSensor(
 
         earliest_expiry = None
         for pack in cert_packs:
-            candidates = [cert.get("expires_on") for cert in pack.get("certificates", [])]
+            candidates = [
+                cert.get("expires_on") for cert in pack.get("certificates", [])
+            ]
             if not candidates:
                 candidates = [pack.get("expires_on")]
             for expires_on in candidates:

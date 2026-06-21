@@ -563,9 +563,7 @@ class CloudflareApiClient:
 
     async def get_registrar_domains(self, account_id: str) -> list[dict[str, Any]]:
         """Get domains registered via Cloudflare Registrar."""
-        result = await self._request(
-            "GET", f"accounts/{account_id}/registrar/domains"
-        )
+        result = await self._request("GET", f"accounts/{account_id}/registrar/domains")
         return result.get("result", [])
 
     async def get_images_stats(self, account_id: str) -> dict[str, Any]:
