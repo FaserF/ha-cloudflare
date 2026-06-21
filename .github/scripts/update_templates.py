@@ -68,26 +68,26 @@ def clean_and_update_template(file_path, integration_version, ha_version, repo_n
 
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
-    
+
     original_content = content
-    
+
     # 1. Update Home Assistant Version placeholder
     content = re.sub(
         r"(id:\s*ha_version.*?placeholder:\s*['\"]?(?:e\.g\.\s*)?)20\d{2}\.\d{1,2}\.\d{1,2}(['\"]?)",
         f"\\g<1>{ha_version}\\g<2>",
         content,
-        flags=re.DOTALL
+        flags=re.DOTALL,
     )
 
     # 2. Update Integration Version placeholder to the new version
     if not integration_version.startswith("v") and "." in integration_version:
         integration_version = "v" + integration_version
-        
+
     content = re.sub(
         r"(id:\s*integration_version.*?placeholder:\s*['\"]?(?:e\.g\.\s*)?)v?\d+\.\d+\.\d+[^'\"]*?(['\"]?)",
         f"\\g<1>{integration_version}\\g<2>",
         content,
-        flags=re.DOTALL
+        flags=re.DOTALL,
     )
 
     # 3. Update Service/Firmware Version placeholders dynamically if relevant
@@ -188,7 +188,7 @@ def clean_and_update_template(file_path, integration_version, ha_version, repo_n
         new_lines.append(line)
 
     updated_content = "\n".join(new_lines) + "\n"
-    
+
     if updated_content != original_content:
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(updated_content)
