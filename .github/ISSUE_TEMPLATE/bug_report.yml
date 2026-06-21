@@ -62,15 +62,6 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: cf_zone
-    attributes:
-      label: Affected Zone / Domain (optional)
-      description: Which Cloudflare zone or domain is affected? (e.g. example.com — do NOT share your API keys)
-      placeholder: example.com
-    validations:
-      required: false
-
   - type: textarea
     id: description
     attributes:
