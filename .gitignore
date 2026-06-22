@@ -6,3 +6,10 @@ test_graphql.py
 /__pycache__
 config_entry-*.json
 test_live.py
+
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+.venv/
+*.pyc
