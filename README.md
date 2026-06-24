@@ -1,7 +1,7 @@
 # Cloudflare Advanced (for Home Assistant)
 
 [![GitHub Release](https://img.shields.io/github/release/FaserF/ha-cloudflare.svg?style=flat-square)](https://github.com/FaserF/ha-cloudflare/releases)
-[![Downloads (Current release)](https://img.shields.io/github/downloads/FaserF/ha-cloudflare/latest/integration.zip?label=Downloads%20(Current%20release)&style=for-the-badge)](https://github.com/FaserF/ha-cloudflare/releases)
+[![Downloads (Current release)](https://img.shields.io/github/downloads/FaserF/ha-cloudflare/latest/cloudflare_advanced.zip?label=Downloads%20(Current%20release)&style=flat-square)](https://github.com/FaserF/ha-cloudflare/releases)
 [![License](https://img.shields.io/github/license/FaserF/ha-cloudflare.svg?style=flat-square)](LICENSE)
 [![hacs](https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square)](https://hacs.xyz)
 [![Documentation](https://img.shields.io/badge/docs-Material--MkDocs-blue.svg?style=flat-square)](https://faserf.github.io/ha-cloudflare/)
