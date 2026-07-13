@@ -416,10 +416,12 @@ class CloudflareZoneDkimBinarySensor(
                 name = record.get("name", "")
                 content = record.get("content", "")
                 if "_domainkey" in name:
-                    dkim_records.append({
-                        "record_name": name,
-                        "record_value": content,
-                    })
+                    dkim_records.append(
+                        {
+                            "record_name": name,
+                            "record_value": content,
+                        }
+                    )
         if dkim_records:
             return {
                 "records": dkim_records,

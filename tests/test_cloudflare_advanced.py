@@ -262,11 +262,17 @@ async def test_new_features(hass, mock_api_client) -> None:
 
     assert dkim_sensor.is_on is True
     assert dkim_sensor.extra_state_attributes["total_dkim_keys"] == 1
-    assert dkim_sensor.extra_state_attributes["records"][0]["record_name"] == "selector._domainkey.example.com"
+    assert (
+        dkim_sensor.extra_state_attributes["records"][0]["record_name"]
+        == "selector._domainkey.example.com"
+    )
 
     assert spf_sensor.is_on is True
     assert spf_sensor.extra_state_attributes["record_name"] == "example.com"
-    assert spf_sensor.extra_state_attributes["record_value"] == "v=spf1 include:_spf.google.com ~all"
+    assert (
+        spf_sensor.extra_state_attributes["record_value"]
+        == "v=spf1 include:_spf.google.com ~all"
+    )
 
     # 2. Test DNS Proxy Switch
     from custom_components.cloudflare_advanced.switch import (
@@ -320,8 +326,12 @@ async def test_new_features(hass, mock_api_client) -> None:
     )
 
     assert cache_sensor.native_value == 75.0
-    assert cache_sensor.extra_state_attributes["total_bandwidth_mb"] == 0.95  # 1000000 bytes
-    assert cache_sensor.extra_state_attributes["cached_bandwidth_mb"] == 0.72  # 750000 bytes
+    assert (
+        cache_sensor.extra_state_attributes["total_bandwidth_mb"] == 0.95
+    )  # 1000000 bytes
+    assert (
+        cache_sensor.extra_state_attributes["cached_bandwidth_mb"] == 0.72
+    )  # 750000 bytes
 
     assert threat_sensor.native_value == "Sweden"
     assert threat_sensor.extra_state_attributes["country_counts"]["Sweden"] == 2

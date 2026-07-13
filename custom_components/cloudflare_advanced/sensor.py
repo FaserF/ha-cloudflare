@@ -866,7 +866,9 @@ class CloudflareCacheRatioSensor(
         return {
             "total_bandwidth_mb": round(total_bytes / (1024 * 1024), 2),
             "cached_bandwidth_mb": round(cached_bytes / (1024 * 1024), 2),
-            "uncached_bandwidth_mb": round((total_bytes - cached_bytes) / (1024 * 1024), 2),
+            "uncached_bandwidth_mb": round(
+                (total_bytes - cached_bytes) / (1024 * 1024), 2
+            ),
         }
 
     @property
