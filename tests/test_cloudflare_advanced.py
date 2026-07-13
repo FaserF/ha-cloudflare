@@ -336,3 +336,20 @@ async def test_new_features(hass, mock_api_client) -> None:
     assert threat_sensor.native_value == "Sweden"
     assert threat_sensor.extra_state_attributes["country_counts"]["Sweden"] == 2
     assert threat_sensor.extra_state_attributes["country_counts"]["Germany"] == 1
+
+    # 4. Test CloudflareTunnelSensor
+    from custom_components.cloudflare_advanced.sensor import CloudflareTunnelSensor
+
+    coordinator.data["tunnels"] = [
+        {"id": "tunnel_123", "name": "my_tunnel", "status": "healthy"}
+    ]
+    tunnel_sensor = CloudflareTunnelSensor(coordinator, {"id": "tunnel_123", "name": "my_tunnel"})
+    assert tunnel_sensor.native_value == "healthy"
+    assert tunnel_sensor._attr_unique_id == "tunnel_status_tunnel_123"
+    assert tunnel_sensor.icon == "mdi:cloud-check"
+    assert tunnel_sensor._attr_entity_registry_enabled_default is False
+
+    # Test status change and state evaluation
+    coordinator.data["tunnels"][0]["status"] = "down"
+    assert tunnel_sensor.native_value == "down"
+    assert tunnel_sensor.icon == "mdi:cloud-off-outline"

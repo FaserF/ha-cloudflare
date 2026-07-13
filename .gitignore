@@ -13,3 +13,4 @@ test_live.py
 __pycache__/
 .venv/
 *.pyc
+/scratch

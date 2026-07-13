@@ -27,7 +27,8 @@
         "description": "Select the zones you want to monitor.",
         "data": {
           "zones": "Zones",
-          "enable_ddns": "Enable DDNS (Select A records in next step)"
+          "enable_ddns": "Enable DDNS (Select A records in next step)",
+          "metrics_url": "metrics_url (Optional, e.g. http://localhost:20241/metrics)"
         }
       },
       "select_records": {
@@ -40,7 +41,8 @@
     "error": {
       "invalid_auth": "Invalid authentication",
       "no_zones": "No active zones found in this account",
-      "cannot_connect": "Failed to connect to Cloudflare"
+      "cannot_connect": "Failed to connect to Cloudflare",
+      "cannot_connect_metrics": "Failed to connect to cloudflared metrics endpoint"
     },
     "abort": {
       "already_configured": "Account is already configured"
@@ -55,7 +57,8 @@
           "email": "Email",
           "api_key": "Global API Key",
           "update_interval": "Update Interval (Seconds)",
-          "enable_ddns": "Enable DDNS (Update A records with public IP)"
+          "enable_ddns": "Enable DDNS (Update A records with public IP)",
+          "metrics_url": "metrics_url (Optional, e.g. http://localhost:20241/metrics)"
         }
       },
       "records": {
@@ -93,7 +96,16 @@
       "ratelimit_remaining": { "name": "API Remaining Quota" },
       "ratelimit_reset": { "name": "API Quota Reset" },
       "cache_ratio": { "name": "Cache Ratio" },
-      "top_threat_country": { "name": "Top Threat Country" }
+      "top_threat_country": { "name": "Top Threat Country" },
+      "tunnel_status": {
+        "name": "Tunnel Status",
+        "state": {
+          "inactive": "Inactive",
+          "degraded": "Degraded",
+          "healthy": "Healthy",
+          "down": "Down"
+        }
+      }
     },
     "switch": {
       "always_use_https": { "name": "Always Use HTTPS" },

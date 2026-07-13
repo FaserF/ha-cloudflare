@@ -85,6 +85,10 @@ async def async_setup_entry(
     entities.append(CloudflareRatelimitSensor(coordinator, "remaining"))
     entities.append(CloudflareRatelimitSensor(coordinator, "reset"))
 
+    # Add Tunnel Sensors (Enum status sensor)
+    for tunnel in coordinator.data.get("tunnels", []):
+        entities.append(CloudflareTunnelSensor(coordinator, tunnel))
+
     async_add_entities(entities)
 
 
@@ -960,5 +964,63 @@ class CloudflareTopThreatCountrySensor(
             name=self._zone_name,
             model="Cloudflare Zone Management",
             manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareTunnelSensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
+):
+    """Representation of a Cloudflare tunnel status sensor."""
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["inactive", "degraded", "healthy", "down"]
+    _attr_has_entity_name = True
+    _attr_translation_key = "tunnel_status"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        tunnel: dict[str, Any],
+    ) -> None:
+        """Initialize the tunnel sensor."""
+        super().__init__(coordinator)
+        self._tunnel_id = tunnel["id"]
+        self._tunnel_name = tunnel["name"]
+        self._attr_unique_id = f"tunnel_status_{self._tunnel_id}"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return tunnel status from coordinator data."""
+        for t in self.coordinator.data.get("tunnels", []):
+            if t["id"] == self._tunnel_id:
+                return t.get("status")
+        return None
+
+    @property
+    def icon(self) -> str:
+        """Return icon based on health state."""
+        return (
+            "mdi:cloud-check"
+            if self.native_value == "healthy"
+            else "mdi:cloud-off-outline"
+        )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for Zero Trust."""
+        config_url = "https://dash.cloudflare.com"
+        zones = self.coordinator.data.get("zones", {})
+        if zones:
+            first_zone = list(zones.values())[0]
+            account_id = first_zone.get("info", {}).get("account", {}).get("id")
+            if account_id:
+                config_url = f"https://dash.cloudflare.com/{account_id}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"tunnel_{self._tunnel_id}")},
+            name=f"Cloudflare Tunnel: {self._tunnel_name}",
+            manufacturer="Cloudflare Zero Trust",
             configuration_url=config_url,
         )

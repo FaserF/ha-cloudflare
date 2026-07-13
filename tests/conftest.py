@@ -38,6 +38,7 @@ class MockEntityDescription:
     device_class: Any | None = None
     state_class: Any | None = None
     options: list[str] | None = None
+    suggested_display_precision: int | None = None
 
 
 class MockEntity:
@@ -76,7 +77,16 @@ for platform in platforms:
     setattr(mock_module, desc_class_name, MockEntityDescription)
     sys.modules[module_name] = mock_module
 
-sys.modules["homeassistant.exceptions"] = MagicMock()
+mock_exceptions = MagicMock()
+
+
+class MockHomeAssistantError(Exception):
+    """Mock Home Assistant Error."""
+
+
+mock_exceptions.HomeAssistantError = MockHomeAssistantError
+mock_exceptions.ConfigEntryNotReady = MockHomeAssistantError
+sys.modules["homeassistant.exceptions"] = mock_exceptions
 sys.modules["homeassistant.const"] = MagicMock()
 sys.modules["homeassistant.core"] = MagicMock()
 sys.modules["homeassistant.helpers"] = MagicMock()
@@ -84,7 +94,8 @@ sys.modules["homeassistant.helpers.entity"] = MagicMock()
 
 
 class MockDataUpdateCoordinator:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, hass, *args, **kwargs):
+        self.hass = hass
         self.data = {}
 
     async def async_config_entry_first_refresh(self):
