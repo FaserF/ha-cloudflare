@@ -343,7 +343,9 @@ async def test_new_features(hass, mock_api_client) -> None:
     coordinator.data["tunnels"] = [
         {"id": "tunnel_123", "name": "my_tunnel", "status": "healthy"}
     ]
-    tunnel_sensor = CloudflareTunnelSensor(coordinator, {"id": "tunnel_123", "name": "my_tunnel"})
+    tunnel_sensor = CloudflareTunnelSensor(
+        coordinator, {"id": "tunnel_123", "name": "my_tunnel"}
+    )
     assert tunnel_sensor.native_value == "healthy"
     assert tunnel_sensor._attr_unique_id == "tunnel_status_tunnel_123"
     assert tunnel_sensor.icon == "mdi:cloud-check"
