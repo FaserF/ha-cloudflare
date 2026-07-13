@@ -912,7 +912,7 @@ class CloudflareTopThreatCountriesSensor(
         if not country_counts:
             return "No threats"
 
-        top_country = max(country_counts, key=country_counts.get)
+        top_country = max(country_counts, key=lambda c: country_counts[c])
         return top_country
 
     @property
