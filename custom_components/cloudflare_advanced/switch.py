@@ -162,6 +162,14 @@ async def async_setup_entry(
                 CloudflareCacheRuleSwitch(coordinator, zone_id, zone_name, cache_rule)
             )
 
+        for record in zone_data.get("dns_records", []):
+            if record.get("type") in ["A", "AAAA", "CNAME"]:
+                entities.append(
+                    CloudflareDnsRecordProxySwitch(
+                        coordinator, zone_id, zone_name, record
+                    )
+                )
+
     for gateway_rule in coordinator.data.get("gateway_rules", []):
         entities.append(CloudflareGatewayRuleSwitch(coordinator, gateway_rule))
 
@@ -709,6 +717,107 @@ class CloudflareRegistrarAutoRenewSwitch(
         return DeviceInfo(
             identifiers={(DOMAIN, "cloudflare_account_level")},
             name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareDnsRecordProxySwitch(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SwitchEntity
+):
+    """Switch for a Cloudflare DNS record proxy status (orange/grey cloud)."""
+
+    _attr_entity_registry_enabled_default = False
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+        record: dict[str, Any],
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._record_id = record["id"]
+        self._record_name = record["name"]
+        self._record_type = record["type"]
+        self._attr_unique_id = f"dns_proxy_{self._record_id}"
+        self._attr_translation_key = "dns_proxy"
+        self._attr_translation_placeholders = {
+            "record_name": self._record_name,
+            "record_type": self._record_type,
+        }
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the DNS record is proxied."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        for record in dns_records:
+            if record["id"] == self._record_id:
+                return record.get("proxied", False)
+        return False
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn on the proxy status."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        record = next((r for r in dns_records if r["id"] == self._record_id), None)
+        if not record:
+            _LOGGER.error("DNS record %s not found to update proxy status", self._record_id)
+            return
+
+        await self.coordinator.client.update_dns_record(
+            self._zone_id,
+            self._record_id,
+            {
+                "name": record["name"],
+                "type": record["type"],
+                "content": record["content"],
+                "proxied": True,
+                "ttl": record.get("ttl", 1),
+            },
+        )
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn off the proxy status."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        record = next((r for r in dns_records if r["id"] == self._record_id), None)
+        if not record:
+            _LOGGER.error("DNS record %s not found to update proxy status", self._record_id)
+            return
+
+        await self.coordinator.client.update_dns_record(
+            self._zone_id,
+            self._record_id,
+            {
+                "name": record["name"],
+                "type": record["type"],
+                "content": record["content"],
+                "proxied": False,
+                "ttl": record.get("ttl", 1),
+            },
+        )
+        await self.coordinator.async_request_refresh()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model="Cloudflare Zone Management",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )

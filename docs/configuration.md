@@ -28,18 +28,18 @@ Ensure your generated API Token follows the **Principle of Least Privilege**. Gr
 ### Required Scopes (Zone-level)
 - `Analytics` (Read) - For traffic & security metrics.
 - `Zone` (Read) - For zone discovery and metadata.
-- `Zone Settings` (Read/Edit) - For performance and network toggles.
-- `Page Rules` (Read/Edit) - For URL filter management.
-- `DNS` (Read/Edit) - For DDNS updates and record control.
-- `Firewall Services` (Read/Edit) - For custom WAF rule toggles.
-- `Cache Rules` (Read/Edit) - For advanced Cache rules.
-- `Email Routing` (Read/Edit) - For email forwarding rule control.
-- `Cache Purge` (Edit) - For manual cache clearing.
+- `Zone Settings` (Edit) - For performance and network toggles.
+- `Page Rules` (Edit) - For URL filter management.
+- `DNS` (Edit) - For DDNS updates and record control.
+- `Firewall Services` (Edit) - For custom WAF rule toggles.
+- `Cache Rules` (Edit) - For advanced Cache rules.
+- `Email Routing` (Edit) - For email forwarding rule control.
+- `Cache Purge` (Delete) - For manual cache clearing.
 
 ### Optional Scopes (Account-level)
-- `Cloudflare Zero Trust` (Read/Edit) - For Tunnels and Gateway policies.
+- `Cloudflare Zero Trust` (Edit) - For Tunnels and Gateway policies.
 - `Workers Scripts` (Read) - For Worker status tracking.
 - `Cloudflare Pages` (Read) - For project deployment status.
 - `Cloudflare Images` (Read) - For storage capacity monitoring.
-- `Load Balancing` (Read) - For health diagnostics of LB pools.
-- `Registrar` (Read/Edit) - For domain management and auto-renew toggles.
+- `Account Load Balancing` (Read) - For health diagnostics of LB pools.
+- `Registrar` (Administration) - For domain management and auto-renew toggles.

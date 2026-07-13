@@ -7,6 +7,7 @@ A secure, production-ready Home Assistant integration for Cloudflare. Monitor zo
 - **Zone Analytics**: 
   - **Requests**: Real-time traffic insights.
   - **Bandwidth**: Data transfer metrics (in Megabytes).
+  - **Cache Ratio**: Monitor the percentage of cached vs. uncached bandwidth (bytes).
   - **Threats Blocked**: See how many malicious requests were prevented.
   - **Unique Visitors**: Track visitor metrics.
   - **Certificate Expiration**: Monitor edge certificate expiry dates.
@@ -16,6 +17,7 @@ A secure, production-ready Home Assistant integration for Cloudflare. Monitor zo
   - **Gateway Policies**: Toggle Zero Trust DNS/HTTP policies on or off.
   - **Load Balancer Pools**: View health diagnostics for origin server distributions.
   - **Registrar Domains**: Track the expiration date of domains registered via Cloudflare.
+  - **DMARC / DKIM / SPF**: Real-time status sensors to verify DNS email security records.
 - **Access Applications, Edge Workers & Pages**: 
   - **Access Apps**: Monitor active statuses for protected assets.
   - **Workers Deployment**: Get uptime diagnostics for deployed Cloudflare Workers.
@@ -30,8 +32,10 @@ A secure, production-ready Home Assistant integration for Cloudflare. Monitor zo
   - **WAF Rules**: Toggle specific WAF Custom rules to secure origins.
   - **Cache Rules**: Toggle specific advanced caching behavior rules.
   - **Domain Auto-Renew**: Toggle domain registration auto-renewals safely.
+  - **DNS Proxy Toggle**: Switches to toggle Cloudflare CDN proxying (orange/grey cloud) for A, AAAA, and CNAME records.
   - **API Quota Monitoring**: Tracks remaining API requests and reset time to prevent rate limiting.
   - **Security Logs**: Tracks external attack properties (`Country`, `IP Address`, `Rule Triggered`).
+  - **Top Threat Countries**: Expose the main origin countries of WAF security events.
 - **Smart Tracking & Logic**:
   - **Automated DDNS Updates**: Automatically detects your router's public IP changes using `Home Assistant` networking infrastructure, seamlessly propagating changes onto mapped Zone A-Records.
   - **Cache Management**: Instantly purge your Cloudflare Zone Cache using custom hardware buttons.

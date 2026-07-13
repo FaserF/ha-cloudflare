@@ -91,7 +91,9 @@
       "certificate_expiration": { "name": "Certificate Expiration" },
       "lb_pool": { "name": "Load Balancer Pool {pool_name}" },
       "ratelimit_remaining": { "name": "API Remaining Quota" },
-      "ratelimit_reset": { "name": "API Quota Reset" }
+      "ratelimit_reset": { "name": "API Quota Reset" },
+      "cache_ratio": { "name": "Cache Ratio" },
+      "top_threat_countries": { "name": "Top Threat Countries" }
     },
     "switch": {
       "always_use_https": { "name": "Always Use HTTPS" },
@@ -112,7 +114,8 @@
       "gateway_rule": { "name": "Zero Trust Policy ({rule_name})" },
       "waf_rule": { "name": "WAF Rule ({rule_desc})" },
       "cache_rule": { "name": "Cache Rule ({rule_desc})" },
-      "registrar_auto_renew": { "name": "Domain Auto-Renew ({domain_name})" }
+      "registrar_auto_renew": { "name": "Domain Auto-Renew ({domain_name})" },
+      "dns_proxy": { "name": "Proxy {record_name} ({record_type})" }
     },
     "button": {
       "purge_cache": { "name": "Purge Cache" }
@@ -136,7 +139,10 @@
     "binary_sensor": {
       "tunnel": { "name": "Tunnel" },
       "health_check": { "name": "Health Check {check_name}" },
-      "access_app": { "name": "Access Application {app_name}" }
+      "access_app": { "name": "Access Application {app_name}" },
+      "dmarc_valid": { "name": "DMARC Valid" },
+      "dkim_valid": { "name": "DKIM Valid" },
+      "spf_valid": { "name": "SPF Valid" }
     }
   },
   "services": {

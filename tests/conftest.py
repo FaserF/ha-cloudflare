@@ -59,6 +59,9 @@ class MockCoordinatorEntity(MockEntity):
     def __init__(self, coordinator, *args, **kwargs):
         self.coordinator = coordinator
 
+    def __class_getitem__(cls, _):
+        return cls
+
 
 # Pre-populate sys.modules
 platforms = ["sensor", "binary_sensor", "switch", "select", "button"]
@@ -85,6 +88,9 @@ class MockDataUpdateCoordinator:
         self.data = {}
 
     async def async_config_entry_first_refresh(self):
+        pass
+
+    async def async_request_refresh(self):
         pass
 
     def __class_getitem__(cls, _):
@@ -128,6 +134,7 @@ ha_mocks = [
     "homeassistant.helpers.entity_platform",
     "homeassistant.data_entry_flow",
     "homeassistant.helpers.selector",
+    "homeassistant.helpers.device_registry",
 ]
 for mock_name in ha_mocks:
     mock_submodule(mock_name)

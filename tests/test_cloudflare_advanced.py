@@ -173,3 +173,136 @@ async def test_api_client_requests(mock_api_client) -> None:
         "account_id", "example.com", True
     )
     assert update_res["auto_renew"] is True
+
+
+@pytest.mark.asyncio
+async def test_new_features(hass, mock_api_client) -> None:
+    """Test the newly added features (binary sensors, switches, sensors)."""
+    from custom_components.cloudflare_advanced.coordinator import CloudflareAdvancedCoordinator
+    from unittest.mock import MagicMock, AsyncMock
+
+    entry = MagicMock()
+    entry.data = {
+        "api_token": "test_token",
+        "zones": ["zone_id"],
+        "entry_id": "entry_123",
+    }
+    entry.options = {}
+    entry.entry_id = "entry_123"
+
+    coordinator = CloudflareAdvancedCoordinator(hass, entry)
+    coordinator.client.update_dns_record = AsyncMock(return_value={})
+
+    # Mock data for coordinator
+    coordinator.data = {
+        "zones": {
+            "zone_id": {
+                "info": {"name": "example.com", "account": {"id": "account_id"}},
+                "dns_records": [
+                    {
+                        "id": "rec_1",
+                        "name": "_dmarc.example.com",
+                        "type": "TXT",
+                        "content": "v=DMARC1; p=none",
+                        "proxied": False,
+                    },
+                    {
+                        "id": "rec_2",
+                        "name": "selector._domainkey.example.com",
+                        "type": "TXT",
+                        "content": "v=DKIM1; k=rsa; p=MIGf...",
+                        "proxied": False,
+                    },
+                    {
+                        "id": "rec_3",
+                        "name": "example.com",
+                        "type": "TXT",
+                        "content": "v=spf1 include:_spf.google.com ~all",
+                        "proxied": False,
+                    },
+                    {
+                        "id": "rec_4",
+                        "name": "www.example.com",
+                        "type": "CNAME",
+                        "content": "example.com",
+                        "proxied": True,
+                    },
+                ],
+                "analytics": {
+                    "bytes": 1000000,
+                    "cachedBytes": 750000,
+                },
+                "firewall_events": [
+                    {"country": "Sweden", "action": "block"},
+                    {"country": "Sweden", "action": "block"},
+                    {"country": "Germany", "action": "challenge"},
+                ],
+            }
+        }
+    }
+
+    # 1. Test DMARC/DKIM/SPF Binary Sensors
+    from custom_components.cloudflare_advanced.binary_sensor import (
+        CloudflareZoneDmarcBinarySensor,
+        CloudflareZoneDkimBinarySensor,
+        CloudflareZoneSpfBinarySensor,
+    )
+
+    dmarc_sensor = CloudflareZoneDmarcBinarySensor(coordinator, "zone_id", "example.com")
+    dkim_sensor = CloudflareZoneDkimBinarySensor(coordinator, "zone_id", "example.com")
+    spf_sensor = CloudflareZoneSpfBinarySensor(coordinator, "zone_id", "example.com")
+
+    assert dmarc_sensor.is_on is True
+    assert dkim_sensor.is_on is True
+    assert spf_sensor.is_on is True
+
+    # 2. Test DNS Proxy Switch
+    from custom_components.cloudflare_advanced.switch import CloudflareDnsRecordProxySwitch
+
+    record_cname = coordinator.data["zones"]["zone_id"]["dns_records"][3]
+    proxy_switch = CloudflareDnsRecordProxySwitch(coordinator, "zone_id", "example.com", record_cname)
+
+    assert proxy_switch.is_on is True
+
+    # Test Turn Off
+    await proxy_switch.async_turn_off()
+    coordinator.client.update_dns_record.assert_called_with(
+        "zone_id",
+        "rec_4",
+        {
+            "name": "www.example.com",
+            "type": "CNAME",
+            "content": "example.com",
+            "proxied": False,
+            "ttl": 1,
+        },
+    )
+
+    # Test Turn On
+    await proxy_switch.async_turn_on()
+    coordinator.client.update_dns_record.assert_called_with(
+        "zone_id",
+        "rec_4",
+        {
+            "name": "www.example.com",
+            "type": "CNAME",
+            "content": "example.com",
+            "proxied": True,
+            "ttl": 1,
+        },
+    )
+
+    # 3. Test Cache Ratio and Top Threat Countries Sensors
+    from custom_components.cloudflare_advanced.sensor import (
+        CloudflareCacheRatioSensor,
+        CloudflareTopThreatCountriesSensor,
+    )
+
+    cache_sensor = CloudflareCacheRatioSensor(coordinator, "zone_id", "example.com")
+    threat_sensor = CloudflareTopThreatCountriesSensor(coordinator, "zone_id", "example.com")
+
+    assert cache_sensor.native_value == 75.0
+    assert threat_sensor.native_value == "Sweden"
+    assert threat_sensor.extra_state_attributes["country_counts"]["Sweden"] == 2
+    assert threat_sensor.extra_state_attributes["country_counts"]["Germany"] == 1
+

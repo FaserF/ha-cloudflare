@@ -42,6 +42,8 @@ async def async_setup_entry(
         )
         entities.append(CloudflareFirewallEventSensor(coordinator, zone_id, zone_name))
         entities.append(CloudflareCertificateSensor(coordinator, zone_id, zone_name))
+        entities.append(CloudflareCacheRatioSensor(coordinator, zone_id, zone_name))
+        entities.append(CloudflareTopThreatCountriesSensor(coordinator, zone_id, zone_name))
 
     # Add Worker Sensors
     for worker in coordinator.data.get("workers", []):
@@ -812,7 +814,134 @@ class CloudflareRatelimitSensor(
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, "cloudflare_account_level")},
-            name="Cloudflare Account",
+            name="Cloudflare Account Resources",
             manufacturer="Cloudflare",
             configuration_url="https://dash.cloudflare.com",
+        )
+
+
+class CloudflareCacheRatioSensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
+):
+    """Sensor for Cloudflare Cache Ratio (percentage of bytes served from cache)."""
+
+    _attr_entity_registry_enabled_default = False
+    _attr_icon = "mdi:database-arrow-down"
+    _attr_native_unit_of_measurement = "%"
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._attr_unique_id = f"{zone_id}_cache_ratio"
+        self._attr_translation_key = "cache_ratio"
+
+    @property
+    def native_value(self) -> float:
+        """Return the state of the sensor."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        analytics = zone_data.get("analytics", {})
+        total_bytes = analytics.get("bytes", 0)
+        cached_bytes = analytics.get("cachedBytes", 0)
+        if total_bytes > 0:
+            return round((cached_bytes / total_bytes) * 100, 2)
+        return 0.0
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model="Cloudflare Zone Management",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareTopThreatCountriesSensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
+):
+    """Sensor for Cloudflare Top Threat Countries."""
+
+    _attr_icon = "mdi:earth"
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._attr_unique_id = f"{zone_id}_top_threat_countries"
+        self._attr_translation_key = "top_threat_countries"
+
+    @property
+    def native_value(self) -> str:
+        """Return the top threat country."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        events = zone_data.get("firewall_events", [])
+        if not events:
+            return "No threats"
+
+        country_counts: dict[str, int] = {}
+        for ev in events:
+            country = ev.get("country")
+            if country:
+                country_counts[country] = country_counts.get(country, 0) + 1
+
+        if not country_counts:
+            return "No threats"
+
+        top_country = max(country_counts, key=country_counts.get)
+        return top_country
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return threat countries counts."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        events = zone_data.get("firewall_events", [])
+        country_counts: dict[str, int] = {}
+        for ev in events:
+            country = ev.get("country")
+            if country:
+                country_counts[country] = country_counts.get(country, 0) + 1
+
+        return {
+            "country_counts": country_counts,
+            "total_recent_threats": len(events),
+        }
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model="Cloudflare Zone Management",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
         )

@@ -40,6 +40,10 @@ async def async_setup_entry(
                     coordinator, zone_id, zone_name, check
                 )
             )
+        # Add DNS Security (DMARC, DKIM, SPF) Binary Sensors
+        entities.append(CloudflareZoneDmarcBinarySensor(coordinator, zone_id, zone_name))
+        entities.append(CloudflareZoneDkimBinarySensor(coordinator, zone_id, zone_name))
+        entities.append(CloudflareZoneSpfBinarySensor(coordinator, zone_id, zone_name))
 
     # Add Access Applications Binary Sensors
     for app in coordinator.data.get("access_apps", []):
@@ -293,6 +297,160 @@ class CloudflareLoadBalancerPoolBinarySensor(
         return DeviceInfo(
             identifiers={(DOMAIN, "cloudflare_account_level")},
             name="Cloudflare Account Resources",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareZoneDmarcBinarySensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], BinarySensorEntity
+):
+    """Binary sensor to check if DMARC is configured/valid for a zone."""
+
+    _attr_entity_registry_enabled_default = False
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+    ) -> None:
+        """Initialize the DMARC sensor."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._attr_unique_id = f"dmarc_valid_{self._zone_id}"
+        self._attr_translation_key = "dmarc_valid"
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if DMARC is configured."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        for record in dns_records:
+            if record.get("type") == "TXT":
+                name = record.get("name", "")
+                content = record.get("content", "")
+                if name.startswith("_dmarc") and content.strip().startswith("v=DMARC1"):
+                    return True
+        return False
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model="Cloudflare Zone Management",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareZoneDkimBinarySensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], BinarySensorEntity
+):
+    """Binary sensor to check if DKIM is configured/valid for a zone."""
+
+    _attr_entity_registry_enabled_default = False
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+    ) -> None:
+        """Initialize the DKIM sensor."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._attr_unique_id = f"dkim_valid_{self._zone_id}"
+        self._attr_translation_key = "dkim_valid"
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if DKIM is configured."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        for record in dns_records:
+            if record.get("type") == "TXT":
+                name = record.get("name", "")
+                if "_domainkey" in name:
+                    return True
+        return False
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model="Cloudflare Zone Management",
+            manufacturer="Cloudflare",
+            configuration_url=config_url,
+        )
+
+
+class CloudflareZoneSpfBinarySensor(
+    CoordinatorEntity[CloudflareAdvancedCoordinator], BinarySensorEntity
+):
+    """Binary sensor to check if SPF is configured/valid for a zone."""
+
+    _attr_entity_registry_enabled_default = False
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: CloudflareAdvancedCoordinator,
+        zone_id: str,
+        zone_name: str,
+    ) -> None:
+        """Initialize the SPF sensor."""
+        super().__init__(coordinator)
+        self._zone_id = zone_id
+        self._zone_name = zone_name
+        self._attr_unique_id = f"spf_valid_{self._zone_id}"
+        self._attr_translation_key = "spf_valid"
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if SPF is configured."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        for record in dns_records:
+            if record.get("type") == "TXT":
+                content = record.get("content", "")
+                if content.strip().startswith("v=spf1"):
+                    return True
+        return False
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device info for the zone."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        account_id = zone_data.get("info", {}).get("account", {}).get("id")
+        config_url = "https://dash.cloudflare.com"
+        if account_id:
+            config_url = f"https://dash.cloudflare.com/{account_id}/{self._zone_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._zone_id)},
+            name=self._zone_name,
+            model="Cloudflare Zone Management",
             manufacturer="Cloudflare",
             configuration_url=config_url,
         )

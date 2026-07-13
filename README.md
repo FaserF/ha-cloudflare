@@ -26,6 +26,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
 - **Zone Analytics**: 
   - **Requests**: Real-time traffic insights.
   - **Bandwidth**: Data transfer metrics (in Megabytes).
+  - **Cache Ratio**: Monitor the percentage of cached vs. uncached bandwidth (bytes).
   - **Threats Blocked**: See how many malicious requests were prevented.
   - **Unique Visitors**: Track visitor metrics.
   - **Certificate Expiration**: Monitor edge certificate expiry dates.
@@ -35,6 +36,7 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **Gateway Policies**: Toggle Zero Trust DNS/HTTP policies on or off.
   - **Load Balancer Pools**: View health diagnostics for origin server distributions.
   - **Registrar Domains**: Track the expiration date of domains registered via Cloudflare.
+  - **DMARC / DKIM / SPF**: Real-time status sensors to verify DNS email security records.
 - **Access Applications, Edge Workers & Pages**: 
   - **Access Apps**: Monitor active statuses for protected assets.
   - **Workers Deployment**: Get uptime diagnostics for deployed Cloudflare Workers.
@@ -49,8 +51,10 @@ While generic DNS updates only provide simple IP changes, this integration lever
   - **WAF Rules**: Toggle specific WAF Custom rules to secure origins.
   - **Cache Rules**: Toggle specific advanced caching behavior rules.
   - **Domain Auto-Renew**: Toggle domain registration auto-renewals safely.
+  - **DNS Proxy Toggle**: Switches to toggle Cloudflare CDN proxying (orange/grey cloud) for A, AAAA, and CNAME records.
   - **API Quota Monitoring**: Tracks remaining API requests and reset time to prevent rate limiting.
   - **Security Logs**: Tracks external attack properties (`Country`, `IP Address`, `Rule Triggered`).
+  - **Top Threat Countries**: Expose the main origin countries of WAF security events.
 - **Smart Tracking & Logic**:
   - **Automated DDNS Updates**: Automatically detects your router's public IP changes using `Home Assistant` networking infrastructure, seamlessly propagating changes onto mapped Zone A-Records (Configurable via Options Flow).
   - **Cache Management**: Instantly purge your Cloudflare Zone Cache using custom hardware buttons.
@@ -118,21 +122,21 @@ Ensure your generated API Token follows the **Principle of Least Privilege**. Gr
 ### Required Scopes (Zone-level)
 - `Analytics` (Read) - For traffic & security metrics.
 - `Zone` (Read) - For zone discovery and metadata.
-- `Zone Settings` (Read/Edit) - For performance and network toggles.
-- `Page Rules` (Read/Edit) - For URL filter management.
-- `DNS` (Read/Edit) - For DDNS updates and record control.
-- `Firewall Services` (Read/Edit) - For custom WAF rule toggles.
-- `Cache Rules` (Read/Edit) - For advanced Cache rules.
-- `Email Routing` (Read/Edit) - For email forwarding rule control.
-- `Cache Purge` (Edit) - For manual cache clearing.
+- `Zone Settings` (Edit) - For performance and network toggles.
+- `Page Rules` (Edit) - For URL filter management.
+- `DNS` (Edit) - For DDNS updates and record control.
+- `Firewall Services` (Edit) - For custom WAF rule toggles.
+- `Cache Rules` (Edit) - For advanced Cache rules.
+- `Email Routing` (Edit) - For email forwarding rule control.
+- `Cache Purge` (Delete) - For manual cache clearing.
 
 ### Optional Scopes (Account-level)
-- `Cloudflare Zero Trust` (Read/Edit) - For Tunnels and Gateway policies.
+- `Cloudflare Zero Trust` (Edit) - For Tunnels and Gateway policies.
 - `Workers Scripts` (Read) - For Worker status tracking.
 - `Cloudflare Pages` (Read) - For project deployment status.
 - `Cloudflare Images` (Read) - For storage capacity monitoring.
-- `Load Balancing` (Read) - For health diagnostics of LB pools.
-- `Registrar` (Read/Edit) - For domain management and auto-renew toggles.
+- `Account Load Balancing` (Read) - For health diagnostics of LB pools.
+- `Registrar` (Administration) - For domain management and auto-renew toggles.
 
 
 ## 🧱 Services

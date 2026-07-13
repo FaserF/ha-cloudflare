@@ -91,7 +91,9 @@
       "certificate_expiration": { "name": "Zertifikatsablauf" },
       "lb_pool": { "name": "Load Balancer Pool ({pool_name})" },
       "ratelimit_remaining": { "name": "API-Restkontingent" },
-      "ratelimit_reset": { "name": "API-Kontingent-Reset" }
+      "ratelimit_reset": { "name": "API-Kontingent-Reset" },
+      "cache_ratio": { "name": "Cache-Verhältnis" },
+      "top_threat_countries": { "name": "Häufigste Angreiferländer" }
     },
     "switch": {
       "always_use_https": { "name": "Immer HTTPS verwenden" },
@@ -112,7 +114,8 @@
       "gateway_rule": { "name": "Zero Trust Richtlinie ({rule_name})" },
       "waf_rule": { "name": "WAF-Regel ({rule_desc})" },
       "cache_rule": { "name": "Cache-Regel ({rule_desc})" },
-      "registrar_auto_renew": { "name": "Domain-Autoverlängerung ({domain_name})" }
+      "registrar_auto_renew": { "name": "Domain-Autoverlängerung ({domain_name})" },
+      "dns_proxy": { "name": "Proxy {record_name} ({record_type})" }
     },
     "button": {
       "purge_cache": { "name": "Cache leeren" }
@@ -136,7 +139,10 @@
     "binary_sensor": {
       "tunnel": { "name": "Tunnel" },
       "health_check": { "name": "Zustandsprüfung {check_name}" },
-      "access_app": { "name": "Access Anwendung {app_name}" }
+      "access_app": { "name": "Access Anwendung {app_name}" },
+      "dmarc_valid": { "name": "DMARC gültig" },
+      "dkim_valid": { "name": "DKIM gültig" },
+      "spf_valid": { "name": "SPF gültig" }
     }
   },
   "services": {
