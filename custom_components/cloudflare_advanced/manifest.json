@@ -1,6 +1,7 @@
 {
   "domain": "cloudflare_advanced",
   "name": "Cloudflare Advanced",
+  "brand_of": "cloudflare",
   "codeowners": [
     "@FaserF"
   ],
@@ -11,3 +12,4 @@
   "requirements": [],
   "version": "1.2.2-dev0"
 }
+
