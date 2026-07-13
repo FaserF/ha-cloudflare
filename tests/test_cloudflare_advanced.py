@@ -178,7 +178,9 @@ async def test_api_client_requests(mock_api_client) -> None:
 @pytest.mark.asyncio
 async def test_new_features(hass, mock_api_client) -> None:
     """Test the newly added features (binary sensors, switches, sensors)."""
-    from custom_components.cloudflare_advanced.coordinator import CloudflareAdvancedCoordinator
+    from custom_components.cloudflare_advanced.coordinator import (
+        CloudflareAdvancedCoordinator,
+    )
     from unittest.mock import MagicMock, AsyncMock
 
     entry = MagicMock()
@@ -248,7 +250,9 @@ async def test_new_features(hass, mock_api_client) -> None:
         CloudflareZoneSpfBinarySensor,
     )
 
-    dmarc_sensor = CloudflareZoneDmarcBinarySensor(coordinator, "zone_id", "example.com")
+    dmarc_sensor = CloudflareZoneDmarcBinarySensor(
+        coordinator, "zone_id", "example.com"
+    )
     dkim_sensor = CloudflareZoneDkimBinarySensor(coordinator, "zone_id", "example.com")
     spf_sensor = CloudflareZoneSpfBinarySensor(coordinator, "zone_id", "example.com")
 
@@ -257,10 +261,14 @@ async def test_new_features(hass, mock_api_client) -> None:
     assert spf_sensor.is_on is True
 
     # 2. Test DNS Proxy Switch
-    from custom_components.cloudflare_advanced.switch import CloudflareDnsRecordProxySwitch
+    from custom_components.cloudflare_advanced.switch import (
+        CloudflareDnsRecordProxySwitch,
+    )
 
     record_cname = coordinator.data["zones"]["zone_id"]["dns_records"][3]
-    proxy_switch = CloudflareDnsRecordProxySwitch(coordinator, "zone_id", "example.com", record_cname)
+    proxy_switch = CloudflareDnsRecordProxySwitch(
+        coordinator, "zone_id", "example.com", record_cname
+    )
 
     assert proxy_switch.is_on is True
 
@@ -299,10 +307,11 @@ async def test_new_features(hass, mock_api_client) -> None:
     )
 
     cache_sensor = CloudflareCacheRatioSensor(coordinator, "zone_id", "example.com")
-    threat_sensor = CloudflareTopThreatCountriesSensor(coordinator, "zone_id", "example.com")
+    threat_sensor = CloudflareTopThreatCountriesSensor(
+        coordinator, "zone_id", "example.com"
+    )
 
     assert cache_sensor.native_value == 75.0
     assert threat_sensor.native_value == "Sweden"
     assert threat_sensor.extra_state_attributes["country_counts"]["Sweden"] == 2
     assert threat_sensor.extra_state_attributes["country_counts"]["Germany"] == 1
-

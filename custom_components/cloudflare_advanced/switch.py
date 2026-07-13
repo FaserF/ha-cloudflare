@@ -767,7 +767,9 @@ class CloudflareDnsRecordProxySwitch(
         dns_records = zone_data.get("dns_records", [])
         record = next((r for r in dns_records if r["id"] == self._record_id), None)
         if not record:
-            _LOGGER.error("DNS record %s not found to update proxy status", self._record_id)
+            _LOGGER.error(
+                "DNS record %s not found to update proxy status", self._record_id
+            )
             return
 
         await self.coordinator.client.update_dns_record(
@@ -789,7 +791,9 @@ class CloudflareDnsRecordProxySwitch(
         dns_records = zone_data.get("dns_records", [])
         record = next((r for r in dns_records if r["id"] == self._record_id), None)
         if not record:
-            _LOGGER.error("DNS record %s not found to update proxy status", self._record_id)
+            _LOGGER.error(
+                "DNS record %s not found to update proxy status", self._record_id
+            )
             return
 
         await self.coordinator.client.update_dns_record(

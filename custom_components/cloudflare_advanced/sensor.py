@@ -43,7 +43,9 @@ async def async_setup_entry(
         entities.append(CloudflareFirewallEventSensor(coordinator, zone_id, zone_name))
         entities.append(CloudflareCertificateSensor(coordinator, zone_id, zone_name))
         entities.append(CloudflareCacheRatioSensor(coordinator, zone_id, zone_name))
-        entities.append(CloudflareTopThreatCountriesSensor(coordinator, zone_id, zone_name))
+        entities.append(
+            CloudflareTopThreatCountriesSensor(coordinator, zone_id, zone_name)
+        )
 
     # Add Worker Sensors
     for worker in coordinator.data.get("workers", []):

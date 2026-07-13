@@ -41,7 +41,9 @@ async def async_setup_entry(
                 )
             )
         # Add DNS Security (DMARC, DKIM, SPF) Binary Sensors
-        entities.append(CloudflareZoneDmarcBinarySensor(coordinator, zone_id, zone_name))
+        entities.append(
+            CloudflareZoneDmarcBinarySensor(coordinator, zone_id, zone_name)
+        )
         entities.append(CloudflareZoneDkimBinarySensor(coordinator, zone_id, zone_name))
         entities.append(CloudflareZoneSpfBinarySensor(coordinator, zone_id, zone_name))
 
