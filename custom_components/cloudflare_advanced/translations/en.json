@@ -93,7 +93,7 @@
       "ratelimit_remaining": { "name": "API Remaining Quota" },
       "ratelimit_reset": { "name": "API Quota Reset" },
       "cache_ratio": { "name": "Cache Ratio" },
-      "top_threat_countries": { "name": "Top Threat Countries" }
+      "top_threat_country": { "name": "Top Threat Country" }
     },
     "switch": {
       "always_use_https": { "name": "Always Use HTTPS" },

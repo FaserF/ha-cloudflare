@@ -93,7 +93,7 @@
       "ratelimit_remaining": { "name": "API-Restkontingent" },
       "ratelimit_reset": { "name": "API-Kontingent-Reset" },
       "cache_ratio": { "name": "Cache-Verhältnis" },
-      "top_threat_countries": { "name": "Häufigste Angreiferländer" }
+      "top_threat_country": { "name": "Häufigstes Angreiferland" }
     },
     "switch": {
       "always_use_https": { "name": "Immer HTTPS verwenden" },

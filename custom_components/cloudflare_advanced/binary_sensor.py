@@ -339,6 +339,22 @@ class CloudflareZoneDmarcBinarySensor(
         return False
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return DMARC record attributes."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        for record in dns_records:
+            if record.get("type") == "TXT":
+                name = record.get("name", "")
+                content = record.get("content", "")
+                if name.startswith("_dmarc") and content.strip().startswith("v=DMARC1"):
+                    return {
+                        "record_name": name,
+                        "record_value": content,
+                    }
+        return {}
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Device info for the zone."""
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
@@ -390,6 +406,28 @@ class CloudflareZoneDkimBinarySensor(
         return False
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return DKIM record attributes."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        dkim_records = []
+        for record in dns_records:
+            if record.get("type") == "TXT":
+                name = record.get("name", "")
+                content = record.get("content", "")
+                if "_domainkey" in name:
+                    dkim_records.append({
+                        "record_name": name,
+                        "record_value": content,
+                    })
+        if dkim_records:
+            return {
+                "records": dkim_records,
+                "total_dkim_keys": len(dkim_records),
+            }
+        return {}
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Device info for the zone."""
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
@@ -439,6 +477,22 @@ class CloudflareZoneSpfBinarySensor(
                 if content.strip().startswith("v=spf1"):
                     return True
         return False
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return SPF record attributes."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        dns_records = zone_data.get("dns_records", [])
+        for record in dns_records:
+            if record.get("type") == "TXT":
+                name = record.get("name", "")
+                content = record.get("content", "")
+                if content.strip().startswith("v=spf1"):
+                    return {
+                        "record_name": name,
+                        "record_value": content,
+                    }
+        return {}
 
     @property
     def device_info(self) -> DeviceInfo:

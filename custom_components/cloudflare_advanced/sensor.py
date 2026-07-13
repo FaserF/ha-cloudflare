@@ -44,7 +44,7 @@ async def async_setup_entry(
         entities.append(CloudflareCertificateSensor(coordinator, zone_id, zone_name))
         entities.append(CloudflareCacheRatioSensor(coordinator, zone_id, zone_name))
         entities.append(
-            CloudflareTopThreatCountriesSensor(coordinator, zone_id, zone_name)
+            CloudflareTopThreatCountrySensor(coordinator, zone_id, zone_name)
         )
 
     # Add Worker Sensors
@@ -857,6 +857,19 @@ class CloudflareCacheRatioSensor(
         return 0.0
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return total and cached bytes in MB."""
+        zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
+        analytics = zone_data.get("analytics", {})
+        total_bytes = analytics.get("bytes", 0)
+        cached_bytes = analytics.get("cachedBytes", 0)
+        return {
+            "total_bandwidth_mb": round(total_bytes / (1024 * 1024), 2),
+            "cached_bandwidth_mb": round(cached_bytes / (1024 * 1024), 2),
+            "uncached_bandwidth_mb": round((total_bytes - cached_bytes) / (1024 * 1024), 2),
+        }
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Device info for the zone."""
         zone_data = self.coordinator.data.get("zones", {}).get(self._zone_id, {})
@@ -874,10 +887,10 @@ class CloudflareCacheRatioSensor(
         )
 
 
-class CloudflareTopThreatCountriesSensor(
+class CloudflareTopThreatCountrySensor(
     CoordinatorEntity[CloudflareAdvancedCoordinator], SensorEntity
 ):
-    """Sensor for Cloudflare Top Threat Countries."""
+    """Sensor for Cloudflare Top Threat Country."""
 
     _attr_icon = "mdi:earth"
     _attr_has_entity_name = True
@@ -892,8 +905,8 @@ class CloudflareTopThreatCountriesSensor(
         super().__init__(coordinator)
         self._zone_id = zone_id
         self._zone_name = zone_name
-        self._attr_unique_id = f"{zone_id}_top_threat_countries"
-        self._attr_translation_key = "top_threat_countries"
+        self._attr_unique_id = f"{zone_id}_top_threat_country"
+        self._attr_translation_key = "top_threat_country"
 
     @property
     def native_value(self) -> str:
