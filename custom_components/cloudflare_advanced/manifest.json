@@ -1,7 +1,6 @@
 {
   "domain": "cloudflare_advanced",
   "name": "Cloudflare Advanced",
-  "brand_of": "cloudflare",
   "codeowners": [
     "@FaserF"
   ],
