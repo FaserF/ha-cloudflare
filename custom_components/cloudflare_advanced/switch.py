@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import aiohttp
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -14,6 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import CloudflareAdvancedCoordinator
+from .exceptions import CloudflareError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -452,7 +454,7 @@ class CloudflareGatewayRuleSwitch(
                 accounts = await self.coordinator.client.get_accounts()
                 if accounts:
                     account_id = accounts[0]["id"]
-            except Exception as err:
+            except (CloudflareError, aiohttp.ClientError, KeyError) as err:
                 _LOGGER.debug("Failed to get accounts for switch: %s", err)
 
         if not account_id:

@@ -7,12 +7,14 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import CloudflareApiClient
+from .exceptions import CloudflareError
 from .const import (
     CONF_API_KEY,
     CONF_API_TOKEN,
@@ -87,7 +89,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         ip_info = await resp.json()
                         public_ip = ip_info.get("ip")
                         data["public_ip"] = public_ip
-            except Exception as ip_err:
+            except (aiohttp.ClientError, KeyError, ValueError) as ip_err:
                 _LOGGER.debug("Failed to fetch public IP: %s", ip_err)
 
             # 2. Fetch all zones
@@ -98,7 +100,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 accounts = await self.client.get_accounts()
                 if accounts:
                     account_id = accounts[0]["id"]
-            except Exception as acc_err:
+            except (CloudflareError, aiohttp.ClientError, KeyError) as acc_err:
                 _LOGGER.debug("Failed to fetch accounts directly: %s", acc_err)
 
             for zone in all_zones:
@@ -158,7 +160,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                             zone_id, custom_ruleset_id
                                         )
                                     )
-                                except Exception as waf_err:
+                                except (CloudflareError, aiohttp.ClientError, KeyError) as waf_err:
                                     _LOGGER.debug(
                                         "Failed to fetch WAF rules: %s", waf_err
                                     )
@@ -170,7 +172,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                             zone_id, cache_ruleset_id
                                         )
                                     )
-                                except Exception as cache_err:
+                                except (CloudflareError, aiohttp.ClientError, KeyError) as cache_err:
                                     _LOGGER.debug(
                                         "Failed to fetch Cache rules: %s", cache_err
                                     )
@@ -205,7 +207,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                             "ttl": record.get("ttl", 1),
                                         },
                                     )
-                                except Exception as dns_update_err:
+                                except (CloudflareError, aiohttp.ClientError) as dns_update_err:
                                     _LOGGER.error(
                                         "Failed to update DNS record: %s",
                                         dns_update_err,
@@ -313,7 +315,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             return data
 
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             raise UpdateFailed(
                 f"Error communicating with Cloudflare API: {err}"
             ) from err

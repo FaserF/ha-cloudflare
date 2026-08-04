@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import logging
 
+import aiohttp
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN
 from .coordinator import CloudflareAdvancedCoordinator
+from .exceptions import CloudflareError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,7 +66,7 @@ def async_setup_services(
         try:
             await coordinator.client.purge_cache(zone_id, purge_everything, files)
             _LOGGER.info("Successfully purged Cloudflare cache for zone %s", zone_id)
-        except Exception as ex:
+        except (CloudflareError, aiohttp.ClientError) as ex:
             _LOGGER.error(
                 "Failed to purge Cloudflare cache for zone %s: %s", zone_id, ex
             )
@@ -90,7 +92,7 @@ def async_setup_services(
                 zone_id,
             )
             await coordinator.async_request_refresh()
-        except Exception as ex:
+        except (CloudflareError, aiohttp.ClientError) as ex:
             _LOGGER.error(
                 "Failed to update Cloudflare DNS record %s in zone %s: %s",
                 record_id,
@@ -118,7 +120,7 @@ def async_setup_services(
                 zone_id,
             )
             await coordinator.async_request_refresh()
-        except Exception as ex:
+        except (CloudflareError, aiohttp.ClientError) as ex:
             _LOGGER.error(
                 "Failed to create Cloudflare DNS record %s in zone %s: %s",
                 call.data["name"],

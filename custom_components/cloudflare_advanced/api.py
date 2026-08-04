@@ -9,6 +9,11 @@ from typing import Any
 import aiohttp
 
 from .const import API_URL, GRAPHQL_URL
+from .exceptions import (
+    CloudflareApiError,
+    CloudflareAuthError,
+    CloudflareConnectionError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,15 +77,15 @@ class CloudflareApiClient:
                         )
 
                 if response.status == 401:
-                    raise Exception("Unauthorized: Check your API token or key.")
+                    raise CloudflareAuthError("Unauthorized: Check your API token or key.")
                 if response.status == 403:
-                    raise Exception("Forbidden: Insufficient permissions.")
+                    raise CloudflareAuthError("Forbidden: Insufficient permissions.")
 
                 try:
                     result = await response.json()
-                except Exception as exc:
+                except (aiohttp.ContentTypeError, ValueError) as exc:
                     response.raise_for_status()
-                    raise Exception(
+                    raise CloudflareApiError(
                         f"HTTP Error {response.status} with non-JSON response"
                     ) from exc
 
@@ -89,12 +94,12 @@ class CloudflareApiClient:
                     error_msg = ", ".join(
                         [f"{e.get('message')} ({e.get('code')})" for e in errors]
                     )
-                    raise Exception(f"Cloudflare API error: {error_msg}")
+                    raise CloudflareApiError(f"Cloudflare API error: {error_msg}")
 
                 return result
         except aiohttp.ClientError as err:
             _LOGGER.error("Client error communicating with Cloudflare: %s", err)
-            raise Exception(f"Connection error: {err}") from err
+            raise CloudflareConnectionError(f"Connection error: {err}") from err
 
     async def verify_auth(self) -> bool:
         """Verify authentication credentials."""
@@ -103,7 +108,7 @@ class CloudflareApiClient:
             try:
                 result = await self._request("GET", "user/tokens/verify")
                 return result.get("result", {}).get("status") == "active"
-            except Exception as err:
+            except (CloudflareError, aiohttp.ClientError) as err:
                 _LOGGER.error("Token verification failed: %s", err)
                 return False
         elif self.email and self.api_key:
@@ -111,7 +116,7 @@ class CloudflareApiClient:
             try:
                 await self.get_zones()
                 return True
-            except Exception as err:
+            except (CloudflareError, aiohttp.ClientError) as err:
                 _LOGGER.error("Legacy key verification failed: %s", err)
                 return False
         return False
@@ -123,7 +128,7 @@ class CloudflareApiClient:
         try:
             result = await self._request("GET", "user/tokens/verify")
             return result.get("result", {})
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.error("Failed to get token info: %s", err)
             return {}
 
@@ -176,7 +181,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_gateway_rules(acc_id)
                     results["zt"] = True
-                except (aiohttp.ClientError, KeyError, Exception):
+                except (CloudflareError, aiohttp.ClientError, KeyError):
                     pass
 
             # Workers Probe
@@ -184,7 +189,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_workers(acc_id)
                     results["workers"] = True
-                except (aiohttp.ClientError, KeyError, Exception):
+                except (CloudflareError, aiohttp.ClientError, KeyError):
                     pass
 
             # Registrar Probe
@@ -192,7 +197,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_registrar_domains(acc_id)
                     results["registrar"] = True
-                except (aiohttp.ClientError, KeyError, Exception):
+                except (CloudflareError, aiohttp.ClientError, KeyError):
                     pass
 
         return results
@@ -207,7 +212,7 @@ class CloudflareApiClient:
         try:
             result = await self._request("GET", "accounts")
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch accounts: %s", err)
             return []
 
@@ -271,7 +276,7 @@ class CloudflareApiClient:
                 "GET", f"accounts/{account_id}/cfd_tunnel/{tunnel_id}/connections"
             )
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch tunnel connections: %s", err)
             return []
 
@@ -337,7 +342,7 @@ class CloudflareApiClient:
                     combined.update(group.get("sum", {}))
                     combined.update(group.get("uniq", {}))
                     return combined
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.warning("GraphQL analytics fetch failed: %s", err)
 
         return {}
@@ -347,7 +352,7 @@ class CloudflareApiClient:
         try:
             result = await self._request("GET", f"zones/{zone_id}/health_checks")
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch health checks: %s", err)
             return []
 
@@ -363,7 +368,7 @@ class CloudflareApiClient:
                 "GET", f"accounts/{account_id}/turnstile/widgets"
             )
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch Turnstile widgets: %s", err)
             return []
 
@@ -372,7 +377,7 @@ class CloudflareApiClient:
         try:
             result = await self._request("GET", f"accounts/{account_id}/access/apps")
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch Access apps: %s", err)
             return []
 
@@ -381,7 +386,7 @@ class CloudflareApiClient:
         try:
             result = await self._request("GET", f"accounts/{account_id}/pages/projects")
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch Pages projects: %s", err)
             return []
 
@@ -469,7 +474,7 @@ class CloudflareApiClient:
                             }
                         )
                     return events
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.warning("GraphQL firewall events fetch failed: %s", err)
 
         return []
@@ -481,7 +486,7 @@ class CloudflareApiClient:
                 "GET", f"zones/{zone_id}/ssl/certificate_packs?status=all"
             )
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch certificate packs: %s", err)
             return []
 
@@ -490,7 +495,7 @@ class CloudflareApiClient:
         try:
             result = await self._request("GET", f"zones/{zone_id}/email/routing/rules")
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch email routing rules: %s", err)
             return []
 
@@ -508,7 +513,7 @@ class CloudflareApiClient:
         try:
             result = await self._request("GET", f"accounts/{account_id}/gateway/rules")
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch Zero Trust gateway rules: %s", err)
             return []
 
@@ -528,7 +533,7 @@ class CloudflareApiClient:
                 "GET", f"accounts/{account_id}/load_balancers/pools"
             )
             return result.get("result", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch Load Balancer pools: %s", err)
             return []
 
@@ -546,7 +551,7 @@ class CloudflareApiClient:
                 "GET", f"zones/{zone_id}/rulesets/{ruleset_id}"
             )
             return result.get("result", {}).get("rules", [])
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch ruleset rules: %s", err)
             return []
 
@@ -573,7 +578,7 @@ class CloudflareApiClient:
                 "GET", f"accounts/{account_id}/images/v1/stats"
             )
             return result.get("result", {})
-        except Exception as err:
+        except (CloudflareError, aiohttp.ClientError) as err:
             _LOGGER.debug("Failed to fetch Cloudflare Images stats: %s", err)
             return {}
 

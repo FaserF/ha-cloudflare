@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import logging
 
+import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import DOMAIN, PLATFORMS
 from .coordinator import CloudflareAdvancedCoordinator
+from .exceptions import CloudflareError
 from .services import async_setup_services, async_unload_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,7 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         await coordinator.async_config_entry_first_refresh()
-    except Exception as ex:
+    except (CloudflareError, aiohttp.ClientError) as ex:
         raise ConfigEntryNotReady(f"Failed to connect to Cloudflare: {ex}") from ex
 
     hass.data[DOMAIN][entry.entry_id] = coordinator

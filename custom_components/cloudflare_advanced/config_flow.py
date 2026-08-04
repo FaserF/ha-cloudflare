@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -12,6 +13,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import selector
 
 from .api import CloudflareApiClient
+from .exceptions import CloudflareError
 from .const import (
     CONF_API_KEY,
     CONF_API_TOKEN,
@@ -149,8 +151,8 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
                 errors=errors,
             )
-        except Exception as ex:
-            _LOGGER.exception("Exception in async_step_token: %s", ex)
+        except (CloudflareError, aiohttp.ClientError) as ex:
+            _LOGGER.exception("Exception in async_step_token")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
                 step_id="token",
@@ -205,8 +207,8 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except Exception as ex:
-            _LOGGER.exception("Exception in async_step_legacy: %s", ex)
+        except (CloudflareError, aiohttp.ClientError) as ex:
+            _LOGGER.exception("Exception in async_step_legacy")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
                 step_id="legacy",
@@ -266,8 +268,8 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except Exception as ex:
-            _LOGGER.exception("Exception in async_step_select_zones: %s", ex)
+        except (CloudflareError, aiohttp.ClientError) as ex:
+            _LOGGER.exception("Exception in async_step_select_zones")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
                 step_id="token",
@@ -325,8 +327,8 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except Exception as ex:
-            _LOGGER.exception("Exception in async_step_select_records: %s", ex)
+        except (CloudflareError, aiohttp.ClientError) as ex:
+            _LOGGER.exception("Exception in async_step_select_records")
             errors["base"] = "cannot_connect"
             return self._async_create_entry()
 
@@ -472,7 +474,7 @@ class CloudflareAdvancedOptionsFlowHandler(config_entries.OptionsFlow):
                         rec_name = record["name"]
                         rec_id = record["id"]
                         record_options[rec_id] = f"{rec_name} ({zone_name})"
-            except Exception as ex:
+            except (CloudflareError, aiohttp.ClientError, KeyError) as ex:
                 _LOGGER.warning("Failed to fetch records for zone %s: %s", zone_id, ex)
 
         if not record_options:
