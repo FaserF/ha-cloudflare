@@ -13,6 +13,7 @@ from .exceptions import (
     CloudflareApiError,
     CloudflareAuthError,
     CloudflareConnectionError,
+    CloudflareError,
 )
 
 _LOGGER = logging.getLogger(__name__)
