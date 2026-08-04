@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import aiohttp
@@ -60,7 +60,7 @@ class CloudflareApiClient:
                                 self.last_ratelimit["remaining"] = int(p[2:])
                             elif p.startswith("t="):
                                 self.last_ratelimit["reset"] = int(p[2:])
-                    except Exception:
+                    except (ValueError, IndexError):
                         pass
                 elif "X-Ratelimit-Remaining" in response.headers:
                     self.last_ratelimit["remaining"] = int(
@@ -176,7 +176,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_gateway_rules(acc_id)
                     results["zt"] = True
-                except Exception:
+                except (aiohttp.ClientError, KeyError, Exception):
                     pass
 
             # Workers Probe
@@ -184,7 +184,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_workers(acc_id)
                     results["workers"] = True
-                except Exception:
+                except (aiohttp.ClientError, KeyError, Exception):
                     pass
 
             # Registrar Probe
@@ -192,7 +192,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_registrar_domains(acc_id)
                     results["registrar"] = True
-                except Exception:
+                except (aiohttp.ClientError, KeyError, Exception):
                     pass
 
         return results
@@ -277,31 +277,31 @@ class CloudflareApiClient:
 
     async def get_analytics(self, zone_id: str) -> dict[str, Any]:
         """Get traffic analytics via GraphQL API."""
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         yesterday = now - timedelta(hours=23)
         yesterday_date_str = yesterday.strftime("%Y-%m-%d")
 
-        query = """
-        query {
-          viewer {
-            zones(filter: { zoneTag: "%s" }) {
-              httpRequests1dGroups(limit: 1, filter: { date_geq: "%s" }, orderBy: [date_DESC]) {
-                dimensions { date }
-                sum {
+        query = f"""
+        query {{
+          viewer {{
+            zones(filter: {{ zoneTag: "{zone_id}" }}) {{
+              httpRequests1dGroups(limit: 1, filter: {{ date_geq: "{yesterday_date_str}" }}, orderBy: [date_DESC]) {{
+                dimensions {{ date }}
+                sum {{
                   requests
                   bytes
                   cachedRequests
                   cachedBytes
                   threats
-                }
-                uniq {
+                }}
+                uniq {{
                   uniques
-                }
-              }
-            }
-          }
-        }
-        """ % (zone_id, yesterday_date_str)
+                }}
+              }}
+            }}
+          }}
+        }}
+        """
 
         try:
             async with self.session.post(
@@ -408,25 +408,25 @@ class CloudflareApiClient:
 
     async def get_firewall_events(self, zone_id: str) -> list[dict[str, Any]]:
         """Get recent firewall/security events via GraphQL."""
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         yesterday = now - timedelta(hours=23)
         yesterday_datetime_str = yesterday.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        query = """
-        query {
-          viewer {
-            zones(filter: { zoneTag: "%s" }) {
-              firewallEventsAdaptive(limit: 5, filter: { datetime_geq: "%s" }, orderBy: [datetime_DESC]) {
+        query = f"""
+        query {{
+          viewer {{
+            zones(filter: {{ zoneTag: "{zone_id}" }}) {{
+              firewallEventsAdaptive(limit: 5, filter: {{ datetime_geq: "{yesterday_datetime_str}" }}, orderBy: [datetime_DESC]) {{
                 action
                 clientIP
                 clientCountryName
                 ruleId
                 datetime
-              }
-            }
-          }
-        }
-        """ % (zone_id, yesterday_datetime_str)
+              }}
+            }}
+          }}
+        }}
+        """
 
         try:
             async with self.session.post(

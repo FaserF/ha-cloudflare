@@ -14,7 +14,7 @@ def get_latest_tag():
         )
         tags = result.stdout.strip().split("\n")
         return tags[0] if tags and tags[0] else None
-    except Exception:
+    except subprocess.CalledProcessError:
         return None
 
 
@@ -61,6 +61,7 @@ def bump_version(current, bump_type, release_status, all_tags=None):
                 ["git", "tag", "--list", "--sort=-v:refname"],
                 capture_output=True,
                 text=True,
+                check=False,
             )
             for t in res.stdout.strip().split("\n"):
                 t = t.lstrip("v")
@@ -68,7 +69,7 @@ def bump_version(current, bump_type, release_status, all_tags=None):
                     s_major, s_minor, s_patch, _, _ = parse_version(t)
                     latest_stable = (s_major, s_minor, s_patch)
                     break
-        except Exception:
+        except (subprocess.CalledProcessError, ValueError):
             pass
 
     # Calculate Target Stable Core

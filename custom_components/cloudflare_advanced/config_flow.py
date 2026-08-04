@@ -150,7 +150,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors=errors,
             )
         except Exception as ex:
-            _LOGGER.error("Exception in async_step_token: %s", ex, exc_info=True)
+            _LOGGER.exception("Exception in async_step_token: %s", ex)
             errors["base"] = "cannot_connect"
             return self.async_show_form(
                 step_id="token",
@@ -206,7 +206,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors=errors,
             )
         except Exception as ex:
-            _LOGGER.error("Exception in async_step_legacy: %s", ex, exc_info=True)
+            _LOGGER.exception("Exception in async_step_legacy: %s", ex)
             errors["base"] = "cannot_connect"
             return self.async_show_form(
                 step_id="legacy",
@@ -267,7 +267,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors=errors,
             )
         except Exception as ex:
-            _LOGGER.error("Exception in async_step_select_zones: %s", ex, exc_info=True)
+            _LOGGER.exception("Exception in async_step_select_zones: %s", ex)
             errors["base"] = "cannot_connect"
             return self.async_show_form(
                 step_id="token",
@@ -326,9 +326,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors=errors,
             )
         except Exception as ex:
-            _LOGGER.error(
-                "Exception in async_step_select_records: %s", ex, exc_info=True
-            )
+            _LOGGER.exception("Exception in async_step_select_records: %s", ex)
             errors["base"] = "cannot_connect"
             return self._async_create_entry()
 

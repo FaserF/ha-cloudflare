@@ -444,7 +444,7 @@ class CloudflareGatewayRuleSwitch(
         account_id = None
         if zones:
             account_id = (
-                list(zones.values())[0].get("info", {}).get("account", {}).get("id")
+                next(iter(zones.values())).get("info", {}).get("account", {}).get("id")
             )
 
         if not account_id:
@@ -452,8 +452,8 @@ class CloudflareGatewayRuleSwitch(
                 accounts = await self.coordinator.client.get_accounts()
                 if accounts:
                     account_id = accounts[0]["id"]
-            except Exception:
-                pass
+            except Exception as err:
+                _LOGGER.debug("Failed to get accounts for switch: %s", err)
 
         if not account_id:
             return
@@ -486,7 +486,7 @@ class CloudflareGatewayRuleSwitch(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
@@ -691,7 +691,7 @@ class CloudflareRegistrarAutoRenewSwitch(
         zones = self.coordinator.data.get("zones", {})
         account_id = None
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
 
         if not account_id:
@@ -709,7 +709,7 @@ class CloudflareRegistrarAutoRenewSwitch(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"

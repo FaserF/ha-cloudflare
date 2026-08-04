@@ -197,7 +197,7 @@ class CloudflareWorkerSensor(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
@@ -346,7 +346,7 @@ class CloudflarePagesBaseSensor(
     def _get_account_id(self) -> str | None:
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             return first_zone.get("info", {}).get("account", {}).get("id")
         return None
 
@@ -725,7 +725,7 @@ class CloudflareRegistrarDomainSensor(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
@@ -771,7 +771,7 @@ class CloudflareImagesSensor(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
@@ -974,7 +974,6 @@ class CloudflareTunnelSensor(
     """Representation of a Cloudflare tunnel status sensor."""
 
     _attr_device_class = SensorDeviceClass.ENUM
-    _attr_options = ["inactive", "degraded", "healthy", "down"]
     _attr_has_entity_name = True
     _attr_translation_key = "tunnel_status"
     _attr_entity_registry_enabled_default = False
@@ -986,6 +985,7 @@ class CloudflareTunnelSensor(
     ) -> None:
         """Initialize the tunnel sensor."""
         super().__init__(coordinator)
+        self._attr_options = ["inactive", "degraded", "healthy", "down"]
         self._tunnel_id = tunnel["id"]
         self._tunnel_name = tunnel["name"]
         self._attr_unique_id = f"tunnel_status_{self._tunnel_id}"
@@ -1013,7 +1013,7 @@ class CloudflareTunnelSensor(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"

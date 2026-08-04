@@ -109,7 +109,7 @@ class CloudflareTunnelBinarySensor(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
@@ -224,7 +224,7 @@ class CloudflareAccessAppBinarySensor(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
@@ -291,7 +291,7 @@ class CloudflareLoadBalancerPoolBinarySensor(
         config_url = "https://dash.cloudflare.com"
         zones = self.coordinator.data.get("zones", {})
         if zones:
-            first_zone = list(zones.values())[0]
+            first_zone = next(iter(zones.values()))
             account_id = first_zone.get("info", {}).get("account", {}).get("id")
             if account_id:
                 config_url = f"https://dash.cloudflare.com/{account_id}"
