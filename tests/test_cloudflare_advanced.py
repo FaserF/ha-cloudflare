@@ -1,6 +1,7 @@
 """Test Cloudflare Advanced integration logic."""
 
 from unittest.mock import patch
+
 import pytest
 
 from custom_components.cloudflare_advanced.const import DOMAIN
@@ -63,8 +64,9 @@ async def test_config_flow_legacy(hass, mock_api_client) -> None:
 @pytest.mark.skip(reason="Failing due to incomplete HomeAssistant mocks")
 async def test_integration_setup(hass, mock_api_client) -> None:
     """Test full integration setup."""
-    from custom_components.cloudflare_advanced import async_setup_entry
     from homeassistant.config_entries import ConfigEntry
+
+    from custom_components.cloudflare_advanced import async_setup_entry
 
     entry = ConfigEntry()
     entry.data = {
@@ -178,10 +180,11 @@ async def test_api_client_requests(mock_api_client) -> None:
 @pytest.mark.asyncio
 async def test_new_features(hass, mock_api_client) -> None:
     """Test the newly added features (binary sensors, switches, sensors)."""
+    from unittest.mock import AsyncMock, MagicMock
+
     from custom_components.cloudflare_advanced.coordinator import (
         CloudflareAdvancedCoordinator,
     )
-    from unittest.mock import MagicMock, AsyncMock
 
     entry = MagicMock()
     entry.data = {
@@ -245,8 +248,8 @@ async def test_new_features(hass, mock_api_client) -> None:
 
     # 1. Test DMARC/DKIM/SPF Binary Sensors
     from custom_components.cloudflare_advanced.binary_sensor import (
-        CloudflareZoneDmarcBinarySensor,
         CloudflareZoneDkimBinarySensor,
+        CloudflareZoneDmarcBinarySensor,
         CloudflareZoneSpfBinarySensor,
     )
 

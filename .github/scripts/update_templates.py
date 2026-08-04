@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
+import json
 import os
 import re
 import sys
 import urllib.request
-import json
 
 
 def get_latest_ha_version():
@@ -178,15 +177,22 @@ def clean_and_update_template(file_path, integration_version, ha_version, repo_n
             if (
                 any(
                     k in desc_lower
-                    for k in ["domain", "host", "ip address", "url", "instance", "address"]
+                    for k in [
+                        "domain",
+                        "host",
+                        "ip address",
+                        "url",
+                        "instance",
+                        "address",
+                    ]
                 )
                 and "not share" not in desc_lower
                 and "private" not in desc_lower
             ):
-                    line = (
-                        line.rstrip()
-                        + " (Do NOT share sensitive passwords, credentials, or public API keys. Use example.com or 192.168.1.1 instead.)"
-                    )
+                line = (
+                    line.rstrip()
+                    + " (Do NOT share sensitive passwords, credentials, or public API keys. Use example.com or 192.168.1.1 instead.)"
+                )
 
         new_lines.append(line)
 

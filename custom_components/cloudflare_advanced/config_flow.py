@@ -13,7 +13,6 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import selector
 
 from .api import CloudflareApiClient
-from .exceptions import CloudflareError
 from .const import (
     CONF_API_KEY,
     CONF_API_TOKEN,
@@ -24,6 +23,7 @@ from .const import (
     CONF_ZONES,
     DOMAIN,
 )
+from .exceptions import CloudflareError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
                 errors=errors,
             )
-        except (CloudflareError, aiohttp.ClientError) as ex:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_token")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
@@ -207,7 +207,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except (CloudflareError, aiohttp.ClientError) as ex:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_legacy")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
@@ -268,7 +268,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except (CloudflareError, aiohttp.ClientError) as ex:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_select_zones")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
@@ -327,7 +327,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except (CloudflareError, aiohttp.ClientError) as ex:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_select_records")
             errors["base"] = "cannot_connect"
             return self._async_create_entry()

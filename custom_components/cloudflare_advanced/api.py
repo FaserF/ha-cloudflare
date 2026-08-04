@@ -78,7 +78,9 @@ class CloudflareApiClient:
                         )
 
                 if response.status == 401:
-                    raise CloudflareAuthError("Unauthorized: Check your API token or key.")
+                    raise CloudflareAuthError(
+                        "Unauthorized: Check your API token or key."
+                    )
                 if response.status == 403:
                     raise CloudflareAuthError("Forbidden: Insufficient permissions.")
 
@@ -321,7 +323,7 @@ class CloudflareApiClient:
                     return {}
 
                 result = await response.json()
-                if "errors" in result and result["errors"]:
+                if result.get("errors"):
                     _LOGGER.warning(
                         "Cloudflare GraphQL analytics reported errors: %s",
                         result["errors"],
@@ -446,7 +448,7 @@ class CloudflareApiClient:
                     return []
 
                 result = await response.json()
-                if "errors" in result and result["errors"]:
+                if result.get("errors"):
                     _LOGGER.warning(
                         "Cloudflare GraphQL firewall events reported errors: %s",
                         result["errors"],
