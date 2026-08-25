@@ -69,7 +69,7 @@ def bump_version(current, bump_type, release_status, all_tags=None):
                     s_major, s_minor, s_patch, _, _ = parse_version(t)
                     latest_stable = (s_major, s_minor, s_patch)
                     break
-        except (subprocess.CalledProcessError, ValueError):
+        except subprocess.CalledProcessError, ValueError:
             pass
 
     # Calculate Target Stable Core

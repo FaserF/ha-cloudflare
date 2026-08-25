@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import aiohttp
@@ -66,7 +66,7 @@ class CloudflareApiClient:
                                 self.last_ratelimit["remaining"] = int(p[2:])
                             elif p.startswith("t="):
                                 self.last_ratelimit["reset"] = int(p[2:])
-                    except (ValueError, IndexError):
+                    except ValueError, IndexError:
                         pass
                 elif "X-Ratelimit-Remaining" in response.headers:
                     self.last_ratelimit["remaining"] = int(
@@ -184,7 +184,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_gateway_rules(acc_id)
                     results["zt"] = True
-                except (CloudflareError, aiohttp.ClientError, KeyError):
+                except CloudflareError, aiohttp.ClientError, KeyError:
                     pass
 
             # Workers Probe
@@ -192,7 +192,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_workers(acc_id)
                     results["workers"] = True
-                except (CloudflareError, aiohttp.ClientError, KeyError):
+                except CloudflareError, aiohttp.ClientError, KeyError:
                     pass
 
             # Registrar Probe
@@ -200,7 +200,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_registrar_domains(acc_id)
                     results["registrar"] = True
-                except (CloudflareError, aiohttp.ClientError, KeyError):
+                except CloudflareError, aiohttp.ClientError, KeyError:
                     pass
 
         return results
@@ -285,7 +285,7 @@ class CloudflareApiClient:
 
     async def get_analytics(self, zone_id: str) -> dict[str, Any]:
         """Get traffic analytics via GraphQL API."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         yesterday = now - timedelta(hours=23)
         yesterday_date_str = yesterday.strftime("%Y-%m-%d")
 
@@ -416,7 +416,7 @@ class CloudflareApiClient:
 
     async def get_firewall_events(self, zone_id: str) -> list[dict[str, Any]]:
         """Get recent firewall/security events via GraphQL."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         yesterday = now - timedelta(hours=23)
         yesterday_datetime_str = yesterday.strftime("%Y-%m-%dT%H:%M:%SZ")
 
