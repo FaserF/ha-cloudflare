@@ -103,156 +103,155 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except (CloudflareError, aiohttp.ClientError, KeyError) as acc_err:
                 _LOGGER.debug("Failed to fetch accounts directly: %s", acc_err)
 
-            for zone in all_zones:
+            async def _fetch_single_zone(zone: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
                 zone_id = zone["id"]
-                if zone_id in self.zone_ids:
-                    if not account_id:
-                        account_id = zone.get("account", {}).get("id")
+                if zone_id not in self.zone_ids:
+                    return None
 
-                    settings_task = self.client.get_zone_settings(zone_id)
-                    records_task = self.client.get_dns_records(zone_id)
-                    analytics_task = self.client.get_analytics(zone_id)
-                    health_checks_task = self.client.get_health_checks(zone_id)
-                    page_rules_task = self.client.get_page_rules(zone_id)
-                    firewall_task = self.client.get_firewall_events(zone_id)
-                    cert_packs_task = self.client.get_certificate_packs(zone_id)
-                    email_rules_task = self.client.get_email_routing_rules(zone_id)
-                    rulesets_task = self.client.get_zone_rulesets(zone_id)
+                settings_task = self.client.get_zone_settings(zone_id)
+                records_task = self.client.get_dns_records(zone_id)
+                analytics_task = self.client.get_analytics(zone_id)
+                health_checks_task = self.client.get_health_checks(zone_id)
+                page_rules_task = self.client.get_page_rules(zone_id)
+                firewall_task = self.client.get_firewall_events(zone_id)
+                cert_packs_task = self.client.get_certificate_packs(zone_id)
+                email_rules_task = self.client.get_email_routing_rules(zone_id)
+                rulesets_task = self.client.get_zone_rulesets(zone_id)
 
-                    zone_results = await asyncio.gather(
-                        settings_task,
-                        records_task,
-                        analytics_task,
-                        health_checks_task,
-                        page_rules_task,
-                        firewall_task,
-                        cert_packs_task,
-                        email_rules_task,
-                        rulesets_task,
-                        return_exceptions=True,
-                    )
-                    (
-                        settings,
-                        dns_records,
-                        analytics,
-                        health_checks,
-                        page_rules,
-                        firewall,
-                        cert_packs,
-                        email_rules,
-                        rulesets,
-                    ) = zone_results
+                zone_results = await asyncio.gather(
+                    settings_task,
+                    records_task,
+                    analytics_task,
+                    health_checks_task,
+                    page_rules_task,
+                    firewall_task,
+                    cert_packs_task,
+                    email_rules_task,
+                    rulesets_task,
+                    return_exceptions=True,
+                )
+                (
+                    settings,
+                    dns_records,
+                    analytics,
+                    health_checks,
+                    page_rules,
+                    firewall,
+                    cert_packs,
+                    email_rules,
+                    rulesets,
+                ) = zone_results
 
-                    waf_rules = []
-                    cache_rules = []
-                    custom_ruleset_id = None
-                    cache_ruleset_id = None
-                    rulesets_list: list[dict[str, Any]] = (
-                        rulesets if isinstance(rulesets, list) else []
-                    )
-                    if rulesets_list:
-                        for ruleset in rulesets_list:
-                            if ruleset.get("phase") == "http_request_firewall_custom":
-                                custom_ruleset_id = str(ruleset["id"])
-                                try:
-                                    waf_rules = (
-                                        await self.client.get_zone_ruleset_rules(
-                                            zone_id, custom_ruleset_id
-                                        )
-                                    )
-                                except (
-                                    CloudflareError,
-                                    aiohttp.ClientError,
-                                    KeyError,
-                                ) as waf_err:
-                                    _LOGGER.debug(
-                                        "Failed to fetch WAF rules: %s", waf_err
-                                    )
-                            elif ruleset.get("phase") == "http_request_cache_settings":
-                                cache_ruleset_id = str(ruleset["id"])
-                                try:
-                                    cache_rules = (
-                                        await self.client.get_zone_ruleset_rules(
-                                            zone_id, cache_ruleset_id
-                                        )
-                                    )
-                                except (
-                                    CloudflareError,
-                                    aiohttp.ClientError,
-                                    KeyError,
-                                ) as cache_err:
-                                    _LOGGER.debug(
-                                        "Failed to fetch Cache rules: %s", cache_err
-                                    )
+                waf_rules = []
+                cache_rules = []
+                custom_ruleset_id = None
+                cache_ruleset_id = None
+                rulesets_list: list[dict[str, Any]] = (
+                    rulesets if isinstance(rulesets, list) else []
+                )
+                if rulesets_list:
+                    waf_task = None
+                    cache_task = None
+                    for ruleset in rulesets_list:
+                        if ruleset.get("phase") == "http_request_firewall_custom":
+                            custom_ruleset_id = str(ruleset["id"])
+                            waf_task = self.client.get_zone_ruleset_rules(
+                                zone_id, custom_ruleset_id
+                            )
+                        elif ruleset.get("phase") == "http_request_cache_settings":
+                            cache_ruleset_id = str(ruleset["id"])
+                            cache_task = self.client.get_zone_ruleset_rules(
+                                zone_id, cache_ruleset_id
+                            )
 
-                    dns_list: list[dict[str, Any]] = (
-                        dns_records if isinstance(dns_records, list) else []
-                    )
+                    if waf_task or cache_task:
+                        sub_res = await asyncio.gather(
+                            waf_task if waf_task else asyncio.sleep(0),
+                            cache_task if cache_task else asyncio.sleep(0),
+                            return_exceptions=True,
+                        )
+                        if waf_task and not isinstance(sub_res[0], Exception):
+                            waf_rules = sub_res[0]
+                        if cache_task and not isinstance(sub_res[1], Exception):
+                            cache_rules = sub_res[1]
 
-                    # Perform automatic DDNS update if IP changed and enabled for this record
-                    if self.enable_ddns and public_ip and dns_list:
-                        for record in dns_list:
-                            if (
-                                record.get("type") == "A"
-                                and record.get("id") in self.ddns_records
-                                and record.get("content") != public_ip
-                            ):
-                                _LOGGER.info(
-                                    "Updating Cloudflare DNS record %s from %s to %s",
-                                    record.get("name"),
-                                    record.get("content"),
-                                    public_ip,
+                dns_list: list[dict[str, Any]] = (
+                    dns_records if isinstance(dns_records, list) else []
+                )
+
+                # Perform automatic DDNS update if IP changed and enabled for this record
+                if self.enable_ddns and public_ip and dns_list:
+                    for record in dns_list:
+                        if (
+                            record.get("type") == "A"
+                            and record.get("id") in self.ddns_records
+                            and record.get("content") != public_ip
+                        ):
+                            _LOGGER.info(
+                                "Updating Cloudflare DNS record %s from %s to %s",
+                                record.get("name"),
+                                record.get("content"),
+                                public_ip,
+                            )
+                            try:
+                                await self.client.update_dns_record(
+                                    zone_id,
+                                    str(record["id"]),
+                                    {
+                                        "name": str(record["name"]),
+                                        "type": "A",
+                                        "content": public_ip,
+                                        "proxied": record.get("proxied", True),
+                                        "ttl": record.get("ttl", 1),
+                                    },
                                 )
-                                try:
-                                    await self.client.update_dns_record(
-                                        zone_id,
-                                        str(record["id"]),
-                                        {
-                                            "name": str(record["name"]),
-                                            "type": "A",
-                                            "content": public_ip,
-                                            "proxied": record.get("proxied", True),
-                                            "ttl": record.get("ttl", 1),
-                                        },
-                                    )
-                                except (
-                                    CloudflareError,
-                                    aiohttp.ClientError,
-                                ) as dns_update_err:
-                                    _LOGGER.error(
-                                        "Failed to update DNS record: %s",
-                                        dns_update_err,
-                                    )
+                            except (
+                                CloudflareError,
+                                aiohttp.ClientError,
+                            ) as dns_update_err:
+                                _LOGGER.error(
+                                    "Failed to update DNS record: %s",
+                                    dns_update_err,
+                                )
 
-                    data["zones"][zone_id] = {
-                        "info": zone,
-                        "settings": settings
-                        if not isinstance(settings, Exception)
-                        else [],
-                        "dns_records": dns_list,
-                        "analytics": analytics
-                        if not isinstance(analytics, Exception)
-                        else {},
-                        "health_checks": health_checks
-                        if not isinstance(health_checks, Exception)
-                        else [],
-                        "page_rules": page_rules
-                        if not isinstance(page_rules, Exception)
-                        else [],
-                        "firewall_events": firewall
-                        if not isinstance(firewall, Exception)
-                        else [],
-                        "cert_packs": cert_packs
-                        if not isinstance(cert_packs, Exception)
-                        else [],
-                        "email_rules": email_rules
-                        if not isinstance(email_rules, Exception)
-                        else [],
-                        "waf_rules": waf_rules,
-                        "custom_ruleset_id": custom_ruleset_id,
-                        "cache_rules": cache_rules,
-                        "cache_ruleset_id": cache_ruleset_id,
-                    }
+                return zone_id, {
+                    "info": zone,
+                    "settings": settings
+                    if not isinstance(settings, Exception)
+                    else [],
+                    "dns_records": dns_list,
+                    "analytics": analytics
+                    if not isinstance(analytics, Exception)
+                    else {},
+                    "health_checks": health_checks
+                    if not isinstance(health_checks, Exception)
+                    else [],
+                    "page_rules": page_rules
+                    if not isinstance(page_rules, Exception)
+                    else [],
+                    "firewall_events": firewall
+                    if not isinstance(firewall, Exception)
+                    else [],
+                    "cert_packs": cert_packs
+                    if not isinstance(cert_packs, Exception)
+                    else [],
+                    "email_rules": email_rules
+                    if not isinstance(email_rules, Exception)
+                    else [],
+                    "waf_rules": waf_rules,
+                    "custom_ruleset_id": custom_ruleset_id,
+                    "cache_rules": cache_rules,
+                    "cache_ruleset_id": cache_ruleset_id,
+                }
+
+            zone_tasks = [_fetch_single_zone(zone) for zone in all_zones]
+            fetched_zones = await asyncio.gather(*zone_tasks, return_exceptions=True)
+            for item in fetched_zones:
+                if item and isinstance(item, tuple):
+                    z_id, z_data = item
+                    data["zones"][z_id] = z_data
+                    if not account_id and z_data.get("info", {}).get("account", {}).get("id"):
+                        account_id = z_data["info"]["account"]["id"]
 
             # 3. Fetch Tunnels & Account level services
             if account_id:
