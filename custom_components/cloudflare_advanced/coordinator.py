@@ -103,7 +103,9 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except (CloudflareError, aiohttp.ClientError, KeyError) as acc_err:
                 _LOGGER.debug("Failed to fetch accounts directly: %s", acc_err)
 
-            async def _fetch_single_zone(zone: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
+            async def _fetch_single_zone(
+                zone: dict[str, Any],
+            ) -> tuple[str, dict[str, Any]] | None:
                 zone_id = zone["id"]
                 if zone_id not in self.zone_ids:
                     return None
@@ -216,9 +218,7 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
                 return zone_id, {
                     "info": zone,
-                    "settings": settings
-                    if not isinstance(settings, Exception)
-                    else [],
+                    "settings": settings if not isinstance(settings, Exception) else [],
                     "dns_records": dns_list,
                     "analytics": analytics
                     if not isinstance(analytics, Exception)
@@ -250,7 +250,9 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if item and isinstance(item, tuple):
                     z_id, z_data = item
                     data["zones"][z_id] = z_data
-                    if not account_id and z_data.get("info", {}).get("account", {}).get("id"):
+                    if not account_id and z_data.get("info", {}).get("account", {}).get(
+                        "id"
+                    ):
                         account_id = z_data["info"]["account"]["id"]
 
             # 3. Fetch Tunnels & Account level services
