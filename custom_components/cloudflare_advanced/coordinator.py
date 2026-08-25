@@ -144,8 +144,8 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     rulesets,
                 ) = zone_results
 
-                waf_rules = []
-                cache_rules = []
+                waf_rules: list[dict[str, Any]] = []
+                cache_rules: list[dict[str, Any]] = []
                 custom_ruleset_id = None
                 cache_ruleset_id = None
                 rulesets_list: list[dict[str, Any]] = (
@@ -172,9 +172,9 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             cache_task if cache_task else asyncio.sleep(0),
                             return_exceptions=True,
                         )
-                        if waf_task and not isinstance(sub_res[0], Exception):
+                        if waf_task and isinstance(sub_res[0], list):
                             waf_rules = sub_res[0]
-                        if cache_task and not isinstance(sub_res[1], Exception):
+                        if cache_task and isinstance(sub_res[1], list):
                             cache_rules = sub_res[1]
 
                 dns_list: list[dict[str, Any]] = (
