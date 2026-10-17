@@ -6,7 +6,11 @@ import logging
 from typing import Any
 
 import aiohttp
-import voluptuous as vol
+
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
