@@ -103,7 +103,12 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             if public_ip:
                                 data["public_ip"] = public_ip
                                 break
-                except (aiohttp.ClientError, TimeoutError, KeyError, ValueError) as ip_err:
+                except (
+                    aiohttp.ClientError,
+                    TimeoutError,
+                    KeyError,
+                    ValueError,
+                ) as ip_err:
                     _LOGGER.debug("Failed to fetch public IP from %s: %s", url, ip_err)
 
             # 2. Fetch all zones
