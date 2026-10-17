@@ -5,7 +5,11 @@ from __future__ import annotations
 import logging
 
 import aiohttp
-import voluptuous as vol
+
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
