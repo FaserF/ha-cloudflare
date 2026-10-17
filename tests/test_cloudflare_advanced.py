@@ -195,7 +195,9 @@ async def test_new_features(hass, mock_api_client) -> None:
     entry.options = {}
     entry.entry_id = "entry_123"
 
-    with patch("custom_components.cloudflare_advanced.coordinator.async_get_clientsession"):
+    with patch(
+        "custom_components.cloudflare_advanced.coordinator.async_get_clientsession"
+    ):
         coordinator = CloudflareAdvancedCoordinator(hass, entry)
 
     coordinator.client.update_dns_record = AsyncMock(return_value={})
