@@ -79,18 +79,37 @@ class CloudflareAdvancedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
 
         try:
-            # 1. Get current public IP (DDNS)
+            # 1. Get current public IP (DDNS) with resilient fallback providers
             public_ip = None
-            try:
-                async with self.client.session.get(
-                    "https://services.home-assistant.io/whoami"
-                ) as resp:
-                    if resp.status == 200:
-                        ip_info = await resp.json()
-                        public_ip = ip_info.get("ip")
-                        data["public_ip"] = public_ip
-            except (aiohttp.ClientError, KeyError, ValueError) as ip_err:
-                _LOGGER.debug("Failed to fetch public IP: %s", ip_err)
+            ip_services = (
+                ("https://api64.ipify.org?format=json", "ip"),
+                ("https://api.ipify.org?format=json", "ip"),
+                ("https://ifconfig.co/json", "ip"),
+            )
+            for url, key in ip_services:
+                try:
+                    async with self.client.session.get(
+                        url, timeout=aiohttp.ClientTimeout(total=10)
+                    ) as resp:
+                        if resp.status == 200:
+                            content_type = resp.headers.get("Content-Type", "")
+                            if "application/json" in content_type:
+                                ip_info = await resp.json()
+                                public_ip = ip_info.get(key)
+                            else:
+                                text_val = (await resp.text()).strip()
+                                if text_val and not text_val.startswith("<"):
+                                    public_ip = text_val
+                            if public_ip:
+                                data["public_ip"] = public_ip
+                                break
+                except (
+                    aiohttp.ClientError,
+                    TimeoutError,
+                    KeyError,
+                    ValueError,
+                ) as ip_err:
+                    _LOGGER.debug("Failed to fetch public IP from %s: %s", url, ip_err)
 
             # 2. Fetch all zones
             all_zones = await self.client.get_zones()
