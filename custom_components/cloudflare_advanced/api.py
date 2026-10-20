@@ -66,7 +66,7 @@ class CloudflareApiClient:
                                 self.last_ratelimit["remaining"] = int(p[2:])
                             elif p.startswith("t="):
                                 self.last_ratelimit["reset"] = int(p[2:])
-                    except ValueError, IndexError:
+                    except (ValueError, IndexError):
                         pass
                 elif "X-Ratelimit-Remaining" in response.headers:
                     self.last_ratelimit["remaining"] = int(
@@ -184,7 +184,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_gateway_rules(acc_id)
                     results["zt"] = True
-                except CloudflareError, aiohttp.ClientError, KeyError:
+                except (CloudflareError, aiohttp.ClientError, KeyError):
                     pass
 
             # Workers Probe
@@ -192,7 +192,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_workers(acc_id)
                     results["workers"] = True
-                except CloudflareError, aiohttp.ClientError, KeyError:
+                except (CloudflareError, aiohttp.ClientError, KeyError):
                     pass
 
             # Registrar Probe
@@ -200,7 +200,7 @@ class CloudflareApiClient:
                 try:
                     await self.get_registrar_domains(acc_id)
                     results["registrar"] = True
-                except CloudflareError, aiohttp.ClientError, KeyError:
+                except (CloudflareError, aiohttp.ClientError, KeyError):
                     pass
 
         return results

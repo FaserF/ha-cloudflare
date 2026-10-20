@@ -6,7 +6,11 @@ import logging
 from typing import Any
 
 import aiohttp
-import voluptuous as vol
+
+try:
+    import probatio as vol
+except ImportError:
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -151,7 +155,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data_schema=vol.Schema({vol.Required(CONF_API_TOKEN): str}),
                 errors=errors,
             )
-        except CloudflareError, aiohttp.ClientError:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_token")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
@@ -207,7 +211,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except CloudflareError, aiohttp.ClientError:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_legacy")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
@@ -268,7 +272,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except CloudflareError, aiohttp.ClientError:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_select_zones")
             errors["base"] = "cannot_connect"
             return self.async_show_form(
@@ -327,7 +331,7 @@ class CloudflareAdvancedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
                 errors=errors,
             )
-        except CloudflareError, aiohttp.ClientError:
+        except (CloudflareError, aiohttp.ClientError):
             _LOGGER.exception("Exception in async_step_select_records")
             errors["base"] = "cannot_connect"
             return self._async_create_entry()
