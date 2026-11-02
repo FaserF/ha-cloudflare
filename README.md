@@ -1,9 +1,9 @@
-# Cloudflare Advanced (for Home Assistant)
+﻿# Cloudflare Advanced (for Home Assistant)
 
 [![GitHub Release](https://img.shields.io/github/release/FaserF/ha-cloudflare.svg?style=flat-square)](https://github.com/FaserF/ha-cloudflare/releases)
 [![Downloads (Current release)](https://img.shields.io/github/downloads/FaserF/ha-cloudflare/latest/cloudflare_advanced.zip?label=Downloads%20(Current%20release)&style=flat-square)](https://github.com/FaserF/ha-cloudflare/releases)
 [![License](https://img.shields.io/github/license/FaserF/ha-cloudflare.svg?style=flat-square)](LICENSE)
-[![hacs](https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square)](https://hacs.xyz)
+[![Home Assistant Marketplace](https://img.shields.io/badge/Home_Assistant-Marketplace-41BDF5.svg?style=flat-square&logo=homeassistant&logoColor=white)](https://www.home-assistant.io)
 [![Documentation](https://img.shields.io/badge/docs-Material--MkDocs-blue.svg?style=flat-square)](https://faserf.github.io/ha-cloudflare/)
 [![Add to Home Assistant](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=cloudflare_advanced)
 [![CI Orchestrator](https://github.com/FaserF/ha-cloudflare/actions/workflows/ci-orchestrator.yml/badge.svg)](https://github.com/FaserF/ha-cloudflare/actions/workflows/ci-orchestrator.yml)
@@ -80,19 +80,19 @@ While generic DNS updates only provide simple IP changes, this integration lever
 
 | Device / Service | Integration Use Case | Link |
 | :--- | :--- | :--- |
-| **OpenWrt-kompatible Wi-Fi 6/7 Router & Gateways** | Native Ubus/RPC, WireGuard, SQM & Präsenz-Erkennung in Home Assistant | [Offizielle Geräte-Seite →](https://fabiseitz.de/go/ha-router) |
-| **Home Assistant Green / Yellow Zentrale** | Dedizierter, stromsparender 24/7 Smart-Home-Host | [Offizielle Geräte-Seite →](https://fabiseitz.de/go/ha-hardware) |
+| **OpenWrt-compatible Wi-Fi 6/7 Routers & Gateways** | Native Ubus/RPC, WireGuard, SQM & presence detection in Home Assistant | [Official Device Page →](https://fabiseitz.de/go/ha-router) |
+| **Home Assistant Green / Yellow Hub** | Dedicated, power-efficient 24/7 smart home appliance | [Official Device Page →](https://fabiseitz.de/go/ha-hardware) |
 
 
 ## 📦 Installation
 
-### HACS (Recommended)
+### Home Assistant Marketplace (Recommended)
 
-This integration is fully compatible with [HACS](https://hacs.xyz/).
+This integration is available via the official Home Assistant **Marketplace** (HA 2026.11+) or as a custom repository.
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=FaserF&repository=ha-cloudflare&category=Integration)
+[![Open your Home Assistant instance and open the repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=FaserF&repository=ha-cloudflare&category=Integration)
 
-1. Open HACS in Home Assistant.
+1. Open Marketplace in Home Assistant.
 2. Click the three dots in the top right corner and select **Custom repositories**.
 3. Add `FaserF/ha-cloudflare` with category **Integration**.
 4. Search for "Cloudflare Advanced".
